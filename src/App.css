@@ -757,10 +757,14 @@
 }
 
 .transfer-arrow {
-  margin-top: -5px;
-  font-size: 30px;
-  line-height: 1;
-  transform: rotate(90deg);
+  width: 0;
+  height: 0;
+  flex: 0 0 7px;
+  border-top: 7px solid currentColor;
+  border-right: 5px solid transparent;
+  border-left: 5px solid transparent;
+  font-size: 0;
+  line-height: 0;
 }
 
 .transfer-date {
@@ -1770,8 +1774,7 @@ input:disabled {
   }
 
   .transfer-arrow {
-    margin: -5px 0 0;
-    transform: rotate(90deg);
+    margin: 0;
   }
 
   .transfer-date {
