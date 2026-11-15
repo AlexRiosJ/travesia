@@ -409,11 +409,10 @@ function TransferConnector({
         onClick={onSelect}
         disabled={routeIndex < 0}
         aria-label={`${copy.viewTransfer} ${from.place} ${copy.to} ${to.place}`}
+        icon={<ArrowDownOutlined aria-hidden="true" />}
       >
-        <span className="transfer-line" />
-        <ArrowDownOutlined className="transfer-arrow" aria-hidden="true" />
+        <span className="transfer-date">{formatDate(date, language)}</span>
       </Button>
-      <span className="transfer-date">{formatDate(date, language)}</span>
       <label>
         <span>{copy.transport}</span>
         <Input
