@@ -238,8 +238,8 @@ function TripMap({
         const markerIcon = L.divIcon({
           className: 'place-marker-shell',
           html: `<span class="place-marker${stop.endpointLabel ? ' is-endpoint' : ''}${stop.category === 'day-trip' ? ' is-day-trip' : ''}${isSelected ? ' is-selected' : ''}${isActive ? ' is-active' : ''}"><b>${stop.markerLabel}</b></span>`,
-          iconSize: [34, 34],
-          iconAnchor: [17, 17],
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
         })
 
         return (

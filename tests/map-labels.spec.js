@@ -28,6 +28,24 @@ test('shows labels only for the selected place or active route endpoints', async
   await expect(labels).toHaveCount(2)
   await expect(labels).toContainText(['Guadalajara', 'Ciudad de México'])
 
+  const destinationLabel = labels.filter({ hasText: 'Ciudad de México' })
+  const [markerBounds, labelBounds] = await Promise.all([
+    destinationLabel.evaluate((label) =>
+      document
+        .querySelector(`[aria-describedby="${label.id}"] .place-marker`)
+        .getBoundingClientRect()
+        .toJSON(),
+    ),
+    destinationLabel.evaluate((label) => label.getBoundingClientRect().toJSON()),
+  ])
+  expect(
+    Math.abs(
+      markerBounds.x +
+        markerBounds.width / 2 -
+        (labelBounds.x + labelBounds.width / 2),
+    ),
+  ).toBeLessThan(1)
+
   await map.locator('.place-marker').nth(2).evaluate((marker) => {
     marker.dispatchEvent(
       new MouseEvent('click', { bubbles: true, cancelable: true, view: window }),
