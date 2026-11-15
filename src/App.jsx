@@ -3,6 +3,7 @@ import {
   Alert,
   Button,
   Card,
+  Collapse,
   ConfigProvider,
   Dropdown,
   Input,
@@ -15,7 +16,7 @@ import enUS from 'antd/locale/en_US'
 import esES from 'antd/locale/es_ES'
 import {
   CalendarOutlined,
-  CaretRightOutlined,
+  ArrowDownOutlined,
   CompassOutlined,
   DeleteOutlined,
   DesktopOutlined,
@@ -64,11 +65,12 @@ const LEGACY_TRANSPORT_LABELS = {
 }
 
 function dismissCard(card) {
-  if (!card?.open) return
+  if (!card?.classList.contains('ant-collapse-item-active')) return
 
   const restoreFocus = card.contains(document.activeElement)
-  card.open = false
-  if (restoreFocus) card.querySelector(':scope > summary').focus()
+  const header = card.querySelector(':scope > .ant-collapse-header')
+  header?.click()
+  if (restoreFocus) header?.focus()
 }
 
 function formatTransport(transport) {
@@ -198,107 +200,120 @@ function StopCard({
   )
 
   return (
-    <details
-      className={`stop-node${nested ? ' is-nested' : ''}`}
-      open={isOpen}
-      onToggle={(event) => setIsOpen(event.currentTarget.open)}
+    <Collapse
+      className="itinerary-collapse"
+      activeKey={isOpen ? ['card'] : []}
+      expandIcon={({ isActive }) => (
+        <RightOutlined
+          className={`stop-node-chevron${isActive ? ' is-open' : ''}`}
+          aria-hidden="true"
+        />
+      )}
+      expandIconPlacement="end"
+      onChange={(keys) =>
+        setIsOpen(Array.isArray(keys) ? keys.includes('card') : keys === 'card')
+      }
       onFocusCapture={onSelect}
-    >
-      <summary onClick={onSelect}>
-        <span className="stop-number">{displayLabel}</span>
-        <span className="stop-node-summary">
-          <strong>
-            {stop.place || (nested ? copy.newDayTrip : copy.newStay)}
-          </strong>
-          <small>
-            {formatDateRange(stop.startDate, stop.endDate, language)}
-          </small>
-          {!nested && childCount > 0 && (
-            <small
-              className="stop-node-children-summary"
-              title={childSummary}
-            >
-              {copy.dayTrips}: {childSummary}
-            </small>
-          )}
-        </span>
-        <span className="stop-node-chevron" aria-hidden="true">
-          <RightOutlined aria-hidden="true" />
-        </span>
-      </summary>
-
-      <div className="stop-node-body">
-        <div className="place-fields">
-          <label>
-            <span>{copy.cityOrPlace}</span>
-            <input
-              type="text"
-              value={stop.place}
-              placeholder={copy.cityOrPlace}
-              onChange={(event) =>
-                onUpdate(stop.id, 'place', event.target.value)
-              }
-            />
-          </label>
-        </div>
-        <div className="date-fields">
-          <label>
-            <span>{isExcursion ? copy.date : copy.arrival}</span>
-            <input
-              type="date"
-              value={stop.startDate}
-              onChange={(event) =>
-                onUpdate(stop.id, 'startDate', event.target.value)
-              }
-            />
-          </label>
-          <label>
-            <span>{copy.departure}</span>
-            <input
-              type="date"
-              min={stop.startDate}
-              value={stop.endDate}
-              disabled={isExcursion}
-              onChange={(event) =>
-                onUpdate(stop.id, 'endDate', event.target.value)
-              }
-            />
-          </label>
-        </div>
-        {isExcursion && basePlace && (
-          <p className="day-trip-note">
-            {copy.roundTripFrom} {basePlace}
-          </p>
-        )}
-        {children && <div className="stop-children">{children}</div>}
-        <div className="stop-node-actions">
-          {!nested && (
-            <Button
-              htmlType="button"
-              type="text"
-              className="add-day-trip-button"
-              onClick={(event) => {
-                event.stopPropagation()
-                onAddDayTrip(stop.id)
-              }}
-            >
-              <PlusOutlined aria-hidden="true" />
-              {copy.addDayTrip}
-            </Button>
-          )}
-          <Button
-            htmlType="button"
-            type="text"
-            className="icon-button remove-button"
-            onClick={() => onRemove(stop.id)}
-            disabled={totalStops <= 1}
-            aria-label={`Eliminar ${stop.place || `parada ${displayLabel}`}`}
-            title={copy.delete}
-            icon={<DeleteOutlined aria-hidden="true" />}
-          />
-        </div>
-      </div>
-    </details>
+      items={[
+        {
+          key: 'card',
+          className: `stop-node${nested ? ' is-nested' : ''}`,
+          label: (
+            <>
+              <span className="stop-number">{displayLabel}</span>
+              <span className="stop-node-summary">
+                <strong>
+                  {stop.place || (nested ? copy.newDayTrip : copy.newStay)}
+                </strong>
+                <small>
+                  {formatDateRange(stop.startDate, stop.endDate, language)}
+                </small>
+                {!nested && childCount > 0 && (
+                  <small
+                    className="stop-node-children-summary"
+                    title={childSummary}
+                  >
+                    {copy.dayTrips}: {childSummary}
+                  </small>
+                )}
+              </span>
+            </>
+          ),
+          children: (
+            <div className="stop-node-body">
+              <div className="place-fields">
+                <label>
+                  <span>{copy.cityOrPlace}</span>
+                  <Input
+                    value={stop.place}
+                    placeholder={copy.cityOrPlace}
+                    onChange={(event) =>
+                      onUpdate(stop.id, 'place', event.target.value)
+                    }
+                  />
+                </label>
+              </div>
+              <div className="date-fields">
+                <label>
+                  <span>{isExcursion ? copy.date : copy.arrival}</span>
+                  <Input
+                    type="date"
+                    value={stop.startDate}
+                    onChange={(event) =>
+                      onUpdate(stop.id, 'startDate', event.target.value)
+                    }
+                  />
+                </label>
+                <label>
+                  <span>{copy.departure}</span>
+                  <Input
+                    type="date"
+                    min={stop.startDate}
+                    value={stop.endDate}
+                    disabled={isExcursion}
+                    onChange={(event) =>
+                      onUpdate(stop.id, 'endDate', event.target.value)
+                    }
+                  />
+                </label>
+              </div>
+              {isExcursion && basePlace && (
+                <p className="day-trip-note">
+                  {copy.roundTripFrom} {basePlace}
+                </p>
+              )}
+              {children && <div className="stop-children">{children}</div>}
+              <div className="stop-node-actions">
+                {!nested && (
+                  <Button
+                    htmlType="button"
+                    type="text"
+                    className="add-day-trip-button"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onAddDayTrip(stop.id)
+                    }}
+                  >
+                    <PlusOutlined aria-hidden="true" />
+                    {copy.addDayTrip}
+                  </Button>
+                )}
+                <Button
+                  htmlType="button"
+                  type="text"
+                  className="icon-button remove-button"
+                  onClick={() => onRemove(stop.id)}
+                  disabled={totalStops <= 1}
+                  aria-label={`${copy.delete} ${stop.place || `${copy.stop} ${displayLabel}`}`}
+                  title={copy.delete}
+                  icon={<DeleteOutlined aria-hidden="true" />}
+                />
+              </div>
+            </div>
+          ),
+        },
+      ]}
+    />
   )
 }
 
@@ -317,45 +332,59 @@ function EndpointCard({
   )
 
   return (
-    <details
-      className="endpoint-node"
-      open={isOpen}
-      onToggle={(event) => setIsOpen(event.currentTarget.open)}
+    <Collapse
+      className="itinerary-collapse"
+      activeKey={isOpen ? ['card'] : []}
+      expandIcon={({ isActive }) => (
+        <RightOutlined
+          className={`stop-node-chevron${isActive ? ' is-open' : ''}`}
+          aria-hidden="true"
+        />
+      )}
+      expandIconPlacement="end"
+      onChange={(keys) =>
+        setIsOpen(Array.isArray(keys) ? keys.includes('card') : keys === 'card')
+      }
       onFocusCapture={onSelect}
-    >
-      <summary onClick={onSelect}>
-        <span className="endpoint-marker">{marker}</span>
-        <span className="endpoint-node-summary">
-          <strong>{label}</strong>
-          <small>
-            {endpoint.place || copy.unconfigured} ·{' '}
-            {formatDate(endpoint.date, language)}
-          </small>
-        </span>
-        <span className="stop-node-chevron" aria-hidden="true">
-          <CaretRightOutlined aria-hidden="true" />
-        </span>
-      </summary>
-      <div className="endpoint-node-body">
-        <label>
-          <span>{copy.city}</span>
-          <input
-            type="text"
-            value={endpoint.place}
-            placeholder="Ej. Seattle, WA"
-            onChange={(event) => onUpdate('place', event.target.value)}
-          />
-        </label>
-        <label className="endpoint-date-field">
-          <span>{copy.date}</span>
-          <input
-            type="date"
-            value={endpoint.date}
-            onChange={(event) => onUpdate('date', event.target.value)}
-          />
-        </label>
-      </div>
-    </details>
+      items={[
+        {
+          key: 'card',
+          className: 'endpoint-node',
+          label: (
+            <>
+              <span className="endpoint-marker">{marker}</span>
+              <span className="endpoint-node-summary">
+                <strong>{label}</strong>
+                <small>
+                  {endpoint.place || copy.unconfigured} ·{' '}
+                  {formatDate(endpoint.date, language)}
+                </small>
+              </span>
+            </>
+          ),
+          children: (
+            <div className="endpoint-node-body">
+              <label>
+                <span>{copy.city}</span>
+                <Input
+                  value={endpoint.place}
+                  placeholder={copy.cityPlaceholder}
+                  onChange={(event) => onUpdate('place', event.target.value)}
+                />
+              </label>
+              <label className="endpoint-date-field">
+                <span>{copy.date}</span>
+                <Input
+                  type="date"
+                  value={endpoint.date}
+                  onChange={(event) => onUpdate('date', event.target.value)}
+                />
+              </label>
+            </div>
+          ),
+        },
+      ]}
+    />
   )
 }
 
@@ -378,19 +407,19 @@ function TransferConnector({
         className="transfer-line-button"
         onClick={onSelect}
         disabled={routeIndex < 0}
-        aria-label={`Ver traslado de ${from.place} a ${to.place}`}
+        aria-label={`${copy.viewTransfer} ${from.place} ${copy.to} ${to.place}`}
       >
         <span className="transfer-line" />
-        <span className="transfer-arrow">→</span>
+        <ArrowDownOutlined className="transfer-arrow" aria-hidden="true" />
       </Button>
       <span className="transfer-date">{formatDate(date, language)}</span>
       <label>
         <span>{copy.transport}</span>
-        <input
-          type="text"
+        <Input
           value={LEGACY_TRANSPORT_LABELS[transport] || transport || ''}
           placeholder={copy.transportPlaceholder}
           onChange={(event) => onTransportChange(event.target.value)}
+          aria-label={copy.transport}
         />
       </label>
     </div>
@@ -658,16 +687,20 @@ function App() {
 
   useEffect(() => {
     function handleOutsideInteraction(event) {
-      document.querySelectorAll('details[open]').forEach((card) => {
-        if (!card.contains(event.target) && event.type === 'click') {
-          dismissCard(card)
-        }
-      })
+      if (event.type !== 'click') return
+
+      document
+        .querySelectorAll('.itinerary-collapse .ant-collapse-item-active')
+        .forEach((card) => {
+          if (!card.contains(event.target)) dismissCard(card)
+        })
     }
 
     function handleKeyDown(event) {
       if (event.key === 'Escape') {
-        document.querySelectorAll('details[open]').forEach(dismissCard)
+        document
+          .querySelectorAll('.itinerary-collapse .ant-collapse-item-active')
+          .forEach(dismissCard)
       }
     }
 

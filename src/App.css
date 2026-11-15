@@ -571,26 +571,43 @@
   border-left: 3px solid var(--sage);
 }
 
-.endpoint-node > summary,
-.stop-node > summary {
+.itinerary-collapse.ant-collapse {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.itinerary-collapse .ant-collapse-item {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.itinerary-collapse .ant-collapse-header {
   min-height: 58px;
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr) 24px;
   gap: 10px;
   align-items: center;
-  padding: 10px 12px;
+  padding: 10px 12px !important;
   cursor: pointer;
-  list-style: none;
 }
 
-.endpoint-node > summary::-webkit-details-marker,
-.stop-node > summary::-webkit-details-marker {
-  display: none;
+.itinerary-collapse .ant-collapse-header:focus-visible {
+  outline: 3px solid rgba(39, 124, 114, 0.3);
+  outline-offset: -3px;
 }
 
-.endpoint-node[open] > summary,
-.stop-node[open] > summary {
-  border-bottom: 1px solid var(--border);
+.itinerary-collapse .ant-collapse-expand-icon {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  padding: 0 !important;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
 }
 
 .endpoint-node-summary,
@@ -624,25 +641,24 @@
 }
 
 .stop-node-chevron {
-  width: 26px;
-  height: 26px;
-  display: grid;
-  place-items: center;
+  width: 14px;
+  height: 14px;
   color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 5px;
   transition: transform 150ms ease;
 }
 
-.stop-node-chevron .icon {
-  width: 14px;
-  height: 14px;
+.itinerary-collapse .ant-collapse-item-active > .ant-collapse-header .stop-node-chevron {
+  transform: rotate(90deg);
 }
 
-.endpoint-node[open] .stop-node-chevron,
-.stop-node[open] > summary .stop-node-chevron {
-  transform: rotate(90deg);
+.itinerary-collapse .ant-collapse-content {
+  color: var(--ink);
+  background: var(--paper);
+  border-top: 1px solid var(--border);
+}
+
+.itinerary-collapse .ant-collapse-content-box {
+  padding: 0 !important;
 }
 
 .endpoint-marker {
@@ -757,14 +773,10 @@
 }
 
 .transfer-arrow {
-  width: 0;
-  height: 0;
-  flex: 0 0 7px;
-  border-top: 7px solid currentColor;
-  border-right: 5px solid transparent;
-  border-left: 5px solid transparent;
-  font-size: 0;
-  line-height: 0;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  font-size: 12px;
 }
 
 .transfer-date {
@@ -1969,7 +1981,7 @@ input:disabled {
 :root[data-theme='dark'] .active-route-context,
 :root[data-theme='dark'] .selected-place-context,
 :root[data-theme='dark'] .map-selection-hint,
-:root[data-theme='dark'] .transfer-connector input {
+:root[data-theme='dark'] .transfer-connector .ant-input {
   color: var(--ink);
   background: var(--paper);
 }
@@ -2207,6 +2219,53 @@ input:disabled {
   color: var(--muted);
   background: var(--paper);
   border-color: var(--border);
+}
+
+.itinerary-collapse .ant-collapse-title {
+  display: contents;
+}
+
+.itinerary-collapse .ant-collapse-header {
+  color: var(--ink) !important;
+}
+
+.itinerary-collapse .ant-collapse-item-active > .ant-collapse-header {
+  border-bottom: 0;
+}
+
+.itinerary-collapse .ant-collapse-item,
+.itinerary-collapse .ant-collapse-content {
+  border-color: var(--border);
+}
+
+.itinerary-collapse .ant-collapse-item {
+  background: var(--paper);
+}
+
+.stop-node.is-nested.ant-collapse-item {
+  background: var(--paper-deep);
+  border-left: 3px solid var(--sage);
+}
+
+.itinerary-collapse .ant-collapse-content-box {
+  color: var(--ink);
+}
+
+.itinerary-collapse .ant-input,
+.transfer-connector .ant-input {
+  color: var(--ink);
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.itinerary-collapse .ant-input:focus,
+.transfer-connector .ant-input:focus {
+  background: var(--paper);
+}
+
+.itinerary-collapse .ant-input:disabled {
+  color: var(--muted-light);
+  background: var(--paper-deep);
 }
 
 .add-day-trip-button.ant-btn {
