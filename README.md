@@ -1,26 +1,26 @@
 # Travesía
 
-Planificador visual de viajes con:
+Visual travel planner with:
 
-- Mapa interactivo y rutas geodésicas animadas.
-- Itinerarios con estancias, traslados y day trips.
-- Calendario interactivo y exportación `.ics`.
-- Múltiples viajes guardados en el navegador.
-- Temas claro, oscuro y sistema.
-- Interfaz en español e inglés.
+- Interactive map and animated geodesic routes.
+- Itineraries with stays, transfers, and day trips.
+- Interactive calendar and `.ics` export.
+- Multiple trips saved in the browser.
+- Light, dark, and system themes.
+- Spanish and English interface.
 
-## Desarrollo local
+## Local development
 
-Requiere Node.js 22.
+Requires Node.js 22.
 
 ```bash
 npm install
 npm run dev
 ```
 
-La aplicación estará disponible normalmente en `http://localhost:5173`.
+The app will normally be available at `http://localhost:5173`.
 
-## Validación
+## Validation
 
 ```bash
 node --test src/utils/mapGeometry.test.js
@@ -28,17 +28,16 @@ npm run lint
 npm run build
 ```
 
-Las pruebas de cierre de opciones cubren teclado, puntero y pantallas móviles:
+The settings dismissal tests cover keyboard, pointer, and mobile interactions:
 
 ```bash
 npx playwright install chromium
 npm run test:settings
 ```
 
-El mapa usa coordenadas de visualización compartidas para los marcadores y las
-rutas que cruzan el antimeridiano, sin modificar las coordenadas guardadas.
+The map uses shared display coordinates for markers and routes that cross the
+antimeridian, without modifying the saved coordinates.
 
 ## GitHub Pages
 
-Los cambios enviados a `main` se publican automáticamente mediante GitHub
-Actions.
+Changes pushed to `main` are automatically deployed through GitHub Actions.
