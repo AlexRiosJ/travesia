@@ -7,6 +7,7 @@
   --surface: #fafbfa;
   --border: #d9ddda;
   --border-strong: #c4cac6;
+  --raised-shadow: 0 2px 0 var(--border);
   --terracotta: #d85b3f;
   --sage: #24756c;
   --display: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

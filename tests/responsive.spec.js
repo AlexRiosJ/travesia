@@ -8,6 +8,54 @@ test.beforeEach(async ({ page, baseURL }) => {
   )
 })
 
+for (const theme of ['light', 'dark']) {
+  test(`raised controls and selected day trips remain clear with ${theme} theme`, async ({ page }) => {
+    await page.addInitScript((theme) => {
+      localStorage.setItem('rumbo-theme', theme)
+    }, theme)
+    await page.goto('./')
+
+    const parent = page.locator('.stop-node:not(.is-nested)').first()
+    await parent.locator(':scope > .ant-collapse-header').click()
+    await expect(parent.locator('.is-nested').first()).toBeVisible()
+    const edges = await page.locator(
+      '.trip-menu-trigger, .settings-trigger, .itinerary-collapse > .ant-collapse-item',
+    ).evaluateAll((elements) => elements.map((element) => {
+      const style = getComputedStyle(element)
+      return {
+        completeBorder: ['Top', 'Right', 'Bottom', 'Left'].every(
+          (side) => parseFloat(style[`border${side}Width`]) >= 1,
+        ),
+        roundedCorners: ['TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'].every(
+          (corner) => parseFloat(style[`border${corner}Radius`]) > 0,
+        ),
+        raised: style.boxShadow !== 'none',
+      }
+    }))
+    expect(edges.length).toBeGreaterThanOrEqual(5)
+    for (const edge of edges) {
+      expect(edge).toEqual({ completeBorder: true, roundedCorners: true, raised: true })
+    }
+
+    await page.locator('.timeline-stop').filter({
+      has: page.locator('.timeline-category--day-trip'),
+    }).first().click()
+    const marker = page.locator('.place-marker.is-day-trip.is-selected')
+    await expect(marker).toBeVisible()
+    const contrast = await marker.evaluate((element) => {
+      const style = getComputedStyle(element)
+      const luminance = (color) => color.match(/[\d.]+/g).slice(0, 3)
+        .map((channel) => Number(channel) / 255)
+        .map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4)
+        .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0)
+      const foreground = luminance(style.color)
+      const background = luminance(style.backgroundColor)
+      return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05)
+    })
+    expect(contrast).toBeGreaterThanOrEqual(4.5)
+  })
+}
+
 for (const language of ['en', 'es']) {
   for (const theme of ['light', 'dark']) {
     test(`itinerary fits responsive layouts in ${language} with ${theme} theme`, async ({ page, isMobile }) => {
