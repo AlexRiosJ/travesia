@@ -45,6 +45,9 @@ Ant Design provides application controls, cards, feedback, legends, and calendar
 event/export buttons; `@ant-design/icons` supplies application icons. The shared
 `ConfigProvider` follows the saved English/Spanish locale and light/dark/system
 theme without changing stored trip data.
+Top-bar controls and itinerary cards share a full-size raised shadow and complete
+rounded borders. Selected map markers use theme-aware text on the green accent,
+including day trips.
 
 Leaflet remains the geographic renderer: its zoom/attribution controls, numbered
 markers, permanent selected/active labels, route paths, and moving direction
