@@ -1107,6 +1107,7 @@ function App() {
               icon={<EnvironmentOutlined aria-hidden="true" />}
               aria-label={copy.trips}
               aria-expanded={tripMenuOpen}
+              aria-haspopup="menu"
             >
               <span>{copy.trips}</span>
               <span className="trip-menu-count">{library.trips.length}</span>
