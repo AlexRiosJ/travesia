@@ -28,6 +28,13 @@ npm run lint
 npm run build
 ```
 
+Las pruebas de cierre de opciones cubren teclado, puntero y pantallas móviles:
+
+```bash
+npx playwright install chromium
+npm run test:settings
+```
+
 El mapa usa coordenadas de visualización compartidas para los marcadores y las
 rutas que cruzan el antimeridiano, sin modificar las coordenadas guardadas.
 

@@ -652,6 +652,33 @@ function App() {
   }, [])
 
   useEffect(() => {
+    const settings = settingsMenuRef.current
+
+    function dismissSettings() {
+      if (!settings.open) return
+
+      const restoreFocus = settings.contains(document.activeElement)
+      settings.open = false
+      if (restoreFocus) settings.querySelector('summary').focus()
+    }
+
+    function handlePointerDown(event) {
+      if (!settings.contains(event.target)) dismissSettings()
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') dismissSettings()
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown, true)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown, true)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!isPlaying || routes === 0) return undefined
 
     const timer = window.setInterval(() => {
