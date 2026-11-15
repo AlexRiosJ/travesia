@@ -1,4 +1,38 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Alert,
+  Button,
+  Card,
+  ConfigProvider,
+  Dropdown,
+  Input,
+  Segmented,
+  Statistic,
+  Tag,
+  theme as antdTheme,
+} from 'antd'
+import enUS from 'antd/locale/en_US'
+import esES from 'antd/locale/es_ES'
+import {
+  CalendarOutlined,
+  CaretRightOutlined,
+  CompassOutlined,
+  DeleteOutlined,
+  DesktopOutlined,
+  DownOutlined,
+  EditOutlined,
+  ExpandOutlined,
+  LeftOutlined,
+  MapOutlined,
+  MoonOutlined,
+  PauseOutlined,
+  PlayOutlined,
+  PlusOutlined,
+  RightOutlined,
+  SettingOutlined,
+  ShrinkOutlined,
+  SunOutlined,
+} from '@ant-design/icons'
 import TripCalendar from './components/TripCalendar'
 import TripMap from './components/TripMap'
 import { createEmptyStop, findKnownLocation } from './data/sampleTrip'
@@ -141,97 +175,6 @@ async function geocodePlace(place, signal) {
   }
 }
 
-function Icon({ name }) {
-  const paths = {
-    calendar: (
-      <>
-        <path d="M7 2v3M17 2v3M3.5 9h17" />
-        <rect x="3.5" y="4" width="17" height="17" rx="3" />
-      </>
-    ),
-    map: (
-      <>
-        <path d="m3.5 6 5-2.5 7 3 5-2.5v14l-5 2.5-7-3-5 2.5Z" />
-        <path d="M8.5 3.5v14M15.5 6.5v14" />
-      </>
-    ),
-    play: <path d="m9 6 9 6-9 6Z" />,
-    pause: (
-      <>
-        <path d="M9 6v12M15 6v12" />
-      </>
-    ),
-    plus: <path d="M12 5v14M5 12h14" />,
-    trash: (
-      <>
-        <path d="M4.5 7h15M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6M14 11v6" />
-      </>
-    ),
-    route: (
-      <>
-        <circle cx="6" cy="18" r="2.5" />
-        <circle cx="18" cy="6" r="2.5" />
-        <path d="M8.5 18h3a3 3 0 0 0 3-3v-6a3 3 0 0 1 3-3" />
-      </>
-    ),
-    expandAll: (
-      <>
-        <path d="M5 17H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1" />
-        <rect x="7" y="7" width="15" height="15" rx="2" />
-        <path d="M11 14.5h7M14.5 11v7" />
-      </>
-    ),
-    collapseAll: (
-      <>
-        <path d="M5 17H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1" />
-        <rect x="7" y="7" width="15" height="15" rx="2" />
-        <path d="M11 14.5h7" />
-      </>
-    ),
-    edit: (
-      <>
-        <path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10Z" />
-      </>
-    ),
-    settings: (
-      <>
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z" />
-      </>
-    ),
-    sun: (
-      <>
-        <circle cx="12" cy="12" r="4" />
-        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-      </>
-    ),
-    moon: <path d="M20 15.5A8 8 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z" />,
-    system: (
-      <>
-        <rect x="3" y="4" width="18" height="13" rx="2" />
-        <path d="M8 21h8M12 17v4" />
-      </>
-    ),
-    chevronLeft: <path d="m15 18-6-6 6-6" />,
-    chevronRight: <path d="m9 18 6-6-6-6" />,
-  }
-
-  return (
-    <svg
-      className="icon"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {paths[name]}
-    </svg>
-  )
-}
-
 function StopCard({
   stop,
   displayLabel,
@@ -280,7 +223,7 @@ function StopCard({
           )}
         </span>
         <span className="stop-node-chevron" aria-hidden="true">
-          <Icon name="chevronRight" />
+          <RightOutlined aria-hidden="true" />
         </span>
       </summary>
 
@@ -330,28 +273,29 @@ function StopCard({
         {children && <div className="stop-children">{children}</div>}
         <div className="stop-node-actions">
           {!nested && (
-            <button
-              type="button"
+            <Button
+              htmlType="button"
+              type="text"
               className="add-day-trip-button"
               onClick={(event) => {
                 event.stopPropagation()
                 onAddDayTrip(stop.id)
               }}
             >
-              <Icon name="plus" />
+              <PlusOutlined aria-hidden="true" />
               {copy.addDayTrip}
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
+          <Button
+            htmlType="button"
+            type="text"
             className="icon-button remove-button"
             onClick={() => onRemove(stop.id)}
             disabled={totalStops <= 1}
             aria-label={`Eliminar ${stop.place || `parada ${displayLabel}`}`}
             title={copy.delete}
-          >
-            <Icon name="trash" />
-          </button>
+            icon={<DeleteOutlined />}
+          />
         </div>
       </div>
     </details>
@@ -389,7 +333,7 @@ function EndpointCard({
           </small>
         </span>
         <span className="stop-node-chevron" aria-hidden="true">
-          <Icon name="chevronRight" />
+          <CaretRightOutlined aria-hidden="true" />
         </span>
       </summary>
       <div className="endpoint-node-body">
@@ -428,8 +372,9 @@ function TransferConnector({
 }) {
   return (
     <div className="transfer-connector">
-      <button
-        type="button"
+      <Button
+        htmlType="button"
+        type="text"
         className="transfer-line-button"
         onClick={onSelect}
         disabled={routeIndex < 0}
@@ -437,7 +382,7 @@ function TransferConnector({
       >
         <span className="transfer-line" />
         <span className="transfer-arrow">→</span>
-      </button>
+      </Button>
       <span className="transfer-date">{formatDate(date, language)}</span>
       <label>
         <span>{copy.transport}</span>
@@ -471,6 +416,8 @@ function App() {
   const [systemDark, setSystemDark] = useState(
     () => window.matchMedia('(prefers-color-scheme: dark)').matches,
   )
+  const [tripMenuOpen, setTripMenuOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [status, setStatus] = useState(() =>
     library.loadError
@@ -480,7 +427,6 @@ function App() {
   const geocodeCache = useRef(new Map())
   const routeGenerationController = useRef(null)
   const generateRouteRef = useRef(null)
-  const tripMenuRef = useRef(null)
   const copy = UI_COPY[language] ?? UI_COPY.es
   const resolvedTheme =
     theme === 'system' ? (systemDark ? 'dark' : 'light') : theme
@@ -665,11 +611,9 @@ function App() {
   useEffect(() => {
     function handleOutsideInteraction(event) {
       document.querySelectorAll('details[open]').forEach((card) => {
-        // Inline cards must stay in place until the click reaches its target.
-        if (
-          !card.contains(event.target) &&
-          (event.type === 'click' || card.matches('.trip-menu, .settings-menu'))
-        ) dismissCard(card)
+        if (!card.contains(event.target) && event.type === 'click') {
+          dismissCard(card)
+        }
       })
     }
 
@@ -679,11 +623,9 @@ function App() {
       }
     }
 
-    document.addEventListener('pointerdown', handleOutsideInteraction, true)
     document.addEventListener('click', handleOutsideInteraction, true)
     document.addEventListener('keydown', handleKeyDown)
     return () => {
-      document.removeEventListener('pointerdown', handleOutsideInteraction, true)
       document.removeEventListener('click', handleOutsideInteraction, true)
       document.removeEventListener('keydown', handleKeyDown)
     }
@@ -799,7 +741,7 @@ function App() {
   }
 
   function switchTrip(tripId) {
-    dismissCard(tripMenuRef.current)
+    setTripMenuOpen(false)
     setLibrary((current) => ({ ...current, activeTripId: tripId }))
     setActiveRoute(-1)
     setSelectedPlaceId(null)
@@ -809,7 +751,7 @@ function App() {
   }
 
   function addTrip() {
-    dismissCard(tripMenuRef.current)
+    setTripMenuOpen(false)
     const trip = createBlankTrip()
     setLibrary((current) => ({
       ...current,
@@ -832,7 +774,7 @@ function App() {
       `¿Eliminar "${activeTrip.title}" de este navegador?`,
     )
     if (!shouldRemove) return
-    dismissCard(tripMenuRef.current)
+    setTripMenuOpen(false)
 
     setLibrary((current) => {
       const trips = current.trips.filter((trip) => trip.id !== activeTrip.id)
@@ -1019,18 +961,32 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
+    <ConfigProvider
+      locale={language === 'en' ? enUS : esES}
+      theme={{
+        algorithm:
+          resolvedTheme === 'dark'
+            ? antdTheme.darkAlgorithm
+            : antdTheme.defaultAlgorithm,
+        token: {
+          colorPrimary: resolvedTheme === 'dark' ? '#55a99e' : '#24756c',
+          borderRadius: 6,
+          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        },
+      }}
+    >
+      <main className="app-shell">
       <header className="topbar">
         <a className="brand" href="#inicio" aria-label="Travesía, inicio">
           <span className="brand-mark">
-            <Icon name="route" />
+            <CompassOutlined aria-hidden="true" />
           </span>
           <span>Travesía</span>
         </a>
         <label className="topbar-trip-title">
           <span className="visually-hidden">{copy.tripName}</span>
-          <input
-            type="text"
+          <Input
+            className="topbar-title-input"
             value={activeTrip.title}
             onChange={(event) =>
               updateActiveTrip((trip) => ({
@@ -1041,101 +997,108 @@ function App() {
             placeholder={copy.tripName}
           />
           <span className="topbar-title-edit-icon" aria-hidden="true">
-            <Icon name="edit" />
+            <EditOutlined />
           </span>
         </label>
         <div className="topbar-actions">
-          <details className="trip-menu" ref={tripMenuRef}>
-            <summary>
-              <Icon name="map" />
+          <Dropdown
+            className="trip-menu"
+            trigger={['click']}
+            placement="bottomRight"
+            open={tripMenuOpen}
+            onOpenChange={setTripMenuOpen}
+            menu={{
+              selectedKeys: [`trip:${activeTrip.id}`],
+              items: [
+                {
+                  key: 'trip-heading',
+                  type: 'group',
+                  label: copy.changeTrip,
+                  children: library.trips.map((trip) => ({
+                    key: `trip:${trip.id}`,
+                    label: trip.title || copy.unnamedTrip,
+                    icon: <span className="trip-menu-active-dot" />,
+                  })),
+                },
+                { type: 'divider' },
+                {
+                  key: 'add-trip',
+                  label: copy.newTrip,
+                  icon: <PlusOutlined />,
+                },
+                {
+                  key: 'delete-trip',
+                  label: copy.deleteTrip,
+                  icon: <DeleteOutlined />,
+                  danger: true,
+                  disabled: library.trips.length <= 1,
+                },
+              ],
+              onClick: ({ key }) => {
+                if (key.startsWith('trip:')) {
+                  switchTrip(key.slice('trip:'.length))
+                } else if (key === 'add-trip') {
+                  addTrip()
+                } else if (key === 'delete-trip') {
+                  removeTrip()
+                }
+              },
+            }}
+          >
+            <Button
+              className="trip-menu-trigger"
+              icon={<MapOutlined />}
+              aria-label={copy.trips}
+              aria-expanded={tripMenuOpen}
+            >
               <span>{copy.trips}</span>
               <span className="trip-menu-count">{library.trips.length}</span>
-              <Icon name="chevronRight" />
-            </summary>
-            <div className="trip-menu-popover">
-              <span className="trip-menu-heading">{copy.changeTrip}</span>
-              {library.trips.map((trip) => (
-                <button
-                  type="button"
-                  className={`trip-menu-item${
-                    trip.id === activeTrip.id ? ' is-active' : ''
-                  }`}
-                  onClick={() => switchTrip(trip.id)}
-                  key={trip.id}
-                >
-                  <span className="trip-menu-active-dot" />
-                  <span>{trip.title || copy.unnamedTrip}</span>
-                </button>
-              ))}
-              <div className="trip-menu-separator" />
-              <button
-                type="button"
-                className="trip-menu-action"
-                onClick={addTrip}
-              >
-                <Icon name="plus" />
-                {copy.newTrip}
-              </button>
-              <button
-                type="button"
-                className="trip-menu-action is-danger"
-                onClick={removeTrip}
-                disabled={library.trips.length <= 1}
-              >
-                <Icon name="trash" />
-                {copy.deleteTrip}
-              </button>
-            </div>
-          </details>
-          <details className="settings-menu">
-            <summary
+              <DownOutlined />
+            </Button>
+          </Dropdown>
+          <Dropdown
+            className="settings-menu"
+            trigger={['click']}
+            placement="bottomRight"
+            open={settingsOpen}
+            onOpenChange={setSettingsOpen}
+            dropdownRender={() => (
+              <div className="settings-popover">
+              <span className="settings-label">{copy.language}</span>
+                <Segmented
+                  className="settings-segmented"
+                  aria-label={copy.language}
+                  value={language}
+                  options={[
+                    { label: copy.spanish, value: 'es' },
+                    { label: copy.english, value: 'en' },
+                  ]}
+                  onChange={setLanguage}
+                />
+              <span className="settings-label">{copy.theme}</span>
+                <Segmented
+                  className="settings-segmented theme-choice-row"
+                  aria-label={copy.theme}
+                  value={theme}
+                  options={[
+                    { label: <><SunOutlined /> {copy.light}</>, value: 'light' },
+                    { label: <><MoonOutlined /> {copy.dark}</>, value: 'dark' },
+                    { label: <><DesktopOutlined /> {copy.system}</>, value: 'system' },
+                  ]}
+                  onChange={setTheme}
+                />
+              </div>
+            )}
+          >
+            <Button
+              className="settings-trigger"
               aria-label={copy.settings}
               title={copy.settings}
-            >
-              <Icon name="settings" />
-            </summary>
-            <div className="settings-popover">
-              <span className="settings-label">{copy.language}</span>
-              <div className="settings-choice-row">
-                <button
-                  type="button"
-                  className={language === 'es' ? 'is-active' : ''}
-                  onClick={() => setLanguage('es')}
-                >
-                  {copy.spanish}
-                </button>
-                <button
-                  type="button"
-                  className={language === 'en' ? 'is-active' : ''}
-                  onClick={() => setLanguage('en')}
-                >
-                  {copy.english}
-                </button>
-              </div>
-              <span className="settings-label">{copy.theme}</span>
-              <div className="theme-choice-row">
-                {[
-                  ['light', 'sun', copy.light],
-                  ['dark', 'moon', copy.dark],
-                  ['system', 'system', copy.system],
-                ].map(([value, icon, label]) => (
-                  <button
-                    type="button"
-                    className={theme === value ? 'is-active' : ''}
-                    onClick={() => setTheme(value)}
-                    aria-label={label}
-                    title={label}
-                    key={value}
-                  >
-                    <Icon name={icon} />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </details>
-          <div className="trip-chip">
-            <Icon name="calendar" />
-            <span>
+              aria-expanded={settingsOpen}
+              icon={<SettingOutlined />}
+            />
+          </Dropdown>
+          <Tag className="trip-chip" icon={<CalendarOutlined />}>
               {tripDateRange
                 ? formatDateRange(
                     tripDateRange.startDate,
@@ -1143,8 +1106,7 @@ function App() {
                     language,
                   )
                 : copy.noDates}
-            </span>
-          </div>
+          </Tag>
         </div>
       </header>
 
@@ -1153,20 +1115,17 @@ function App() {
         id="inicio"
         aria-label="Resumen del viaje"
       >
-          <div className="summary-card">
-            <span className="summary-value">{tripSummary?.days ?? 0}</span>
-            <span className="summary-label">{copy.days}</span>
-          </div>
+          <Card className="summary-card" size="small">
+            <Statistic value={tripSummary?.days ?? 0} title={copy.days} />
+          </Card>
           <div className="summary-divider" />
-          <div className="summary-card">
-            <span className="summary-value">{tripSummary?.cities ?? 0}</span>
-            <span className="summary-label">{copy.baseCities}</span>
-          </div>
+          <Card className="summary-card" size="small">
+            <Statistic value={tripSummary?.cities ?? 0} title={copy.baseCities} />
+          </Card>
           <div className="summary-divider" />
-          <div className="summary-card">
-            <span className="summary-value">{routes}</span>
-            <span className="summary-label">{copy.routes}</span>
-          </div>
+          <Card className="summary-card" size="small">
+            <Statistic value={routes} title={copy.routes} />
+          </Card>
       </section>
 
       <section className="workspace">
@@ -1174,27 +1133,29 @@ function App() {
           <div className="map-heading">
             <h2>{copy.map}</h2>
             <div className="map-heading-controls">
-              <button
-                type="button"
+              <Button
+                htmlType="button"
+                type="default"
                 className="map-step-button"
                 onClick={() => navigateMap(-1)}
                 disabled={currentMapStepIndex <= 0}
                 aria-label={copy.previousStep}
                 title={copy.previousStep}
-              >
-                <Icon name="chevronLeft" />
-              </button>
-              <button
-                type="button"
+                icon={<LeftOutlined />}
+              />
+              <Button
+                htmlType="button"
+                type="primary"
                 className="play-button"
                 onClick={togglePlayback}
                 disabled={routes === 0}
+                icon={isPlaying ? <PauseOutlined /> : <PlayOutlined />}
               >
-                <Icon name={isPlaying ? 'pause' : 'play'} />
                 {isPlaying ? copy.pause : copy.playTrip}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                htmlType="button"
+                type="default"
                 className="map-step-button"
                 onClick={() => navigateMap(1)}
                 disabled={
@@ -1203,9 +1164,8 @@ function App() {
                 }
                 aria-label={copy.nextStep}
                 title={copy.nextStep}
-              >
-                <Icon name="chevronRight" />
-              </button>
+                icon={<RightOutlined />}
+              />
             </div>
           </div>
 
@@ -1300,11 +1260,13 @@ function App() {
                   activeRoute === routes - 1)
 
               return (
-                <button
-                  type="button"
+                <Button
+                  htmlType="button"
+                  type="text"
                   className={`timeline-stop${isActive ? ' is-active' : ''}`}
                   key={stop.id}
                   onClick={() => selectStop(index)}
+                  block
                 >
                   <span className="timeline-index">
                     {resolvedStopLabels.get(index)}
@@ -1326,7 +1288,7 @@ function App() {
                       )}
                     </span>
                   </span>
-                </button>
+                </Button>
               )
             })}
           </div>
@@ -1339,8 +1301,9 @@ function App() {
               <span className="stop-count">
                 {draftStops.length} {copy.stages}
               </span>
-              <button
-                type="button"
+              <Button
+                htmlType="button"
+                type="default"
                 className="tree-control-button"
                 aria-label={copy.expandAll}
                 title={copy.expandAll}
@@ -1350,11 +1313,11 @@ function App() {
                     version: Date.now(),
                   })
                 }
-              >
-                <Icon name="expandAll" />
-              </button>
-              <button
-                type="button"
+                icon={<ExpandOutlined />}
+              />
+              <Button
+                htmlType="button"
+                type="default"
                 className="tree-control-button"
                 aria-label={copy.collapseAll}
                 title={copy.collapseAll}
@@ -1364,9 +1327,8 @@ function App() {
                     version: Date.now(),
                   })
                 }
-              >
-                <Icon name="collapseAll" />
-              </button>
+                icon={<ShrinkOutlined />}
+              />
             </div>
           </div>
 
@@ -1531,16 +1493,25 @@ function App() {
           </div>
 
           <div className="planner-actions">
-            <button type="button" className="add-button" onClick={addStop}>
-              <Icon name="plus" />
+            <Button
+              htmlType="button"
+              type="dashed"
+              className="add-button"
+              onClick={addStop}
+              icon={<PlusOutlined />}
+            >
               {copy.addStay}
-            </button>
+            </Button>
           </div>
 
           {status.message && (
-            <p className={`status-message status-message--${status.type}`}>
-              {status.message}
-            </p>
+            <Alert
+              className={`status-message status-message--${status.type}`}
+              message={status.message}
+              type={status.type === 'error' ? 'error' : status.type === 'success' ? 'success' : 'info'}
+              showIcon
+              role={status.type === 'loading' ? 'status' : 'alert'}
+            />
           )}
         </aside>
 
@@ -1570,7 +1541,8 @@ function App() {
           }}
         />
       </section>
-    </main>
+      </main>
+    </ConfigProvider>
   )
 }
 
