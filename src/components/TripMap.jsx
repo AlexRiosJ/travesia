@@ -9,6 +9,7 @@ import {
   useMap,
 } from 'react-leaflet'
 import { buildStopLabels } from '../utils/stopLabels'
+import { buildMapGeometry } from '../utils/mapGeometry'
 import { UI_COPY } from '../i18n'
 
 const ROUTE_COLORS = ['#e85d3f', '#277c72', '#d99927', '#6253a3', '#27628a']
@@ -17,21 +18,20 @@ const CATEGORY_COLORS = {
   'day-trip': '#d99927',
 }
 
-function MapController({ stops, routes, activeRoute }) {
+function MapController({ boundsPoints, routes, activeRoute }) {
   const map = useMap()
-  const coordinateKey = stops.map(({ lat, lng }) => `${lat},${lng}`).join('|')
 
   useEffect(() => {
-    if (!stops.length) return
+    if (!boundsPoints.length) return
 
-    const bounds = L.latLngBounds(stops.map(({ lat, lng }) => [lat, lng]))
+    const bounds = L.latLngBounds(boundsPoints)
     map.fitBounds(bounds.pad(0.18), {
       animate: true,
       duration: 0.8,
       maxZoom: 6,
       padding: [40, 40],
     })
-  }, [coordinateKey, map, stops])
+  }, [boundsPoints, map])
 
   useEffect(() => {
     const activePoints = routes[activeRoute]
@@ -50,51 +50,6 @@ function MapController({ stops, routes, activeRoute }) {
   }, [activeRoute, map, routes])
 
   return null
-}
-
-function createGeodesic(from, to, segmentCount = 64) {
-  const toVector = ({ lat, lng }) => {
-    const latitude = (lat * Math.PI) / 180
-    const longitude = (lng * Math.PI) / 180
-
-    return [
-      Math.cos(latitude) * Math.cos(longitude),
-      Math.cos(latitude) * Math.sin(longitude),
-      Math.sin(latitude),
-    ]
-  }
-
-  const start = toVector(from)
-  const end = toVector(to)
-  const dot = Math.min(
-    1,
-    Math.max(-1, start.reduce((sum, value, index) => sum + value * end[index], 0)),
-  )
-  const angle = Math.acos(dot)
-  const angleSine = Math.sin(angle)
-  const points = []
-  let previousLongitude = from.lng
-
-  for (let index = 0; index <= segmentCount; index += 1) {
-    const progress = index / segmentCount
-    const startWeight =
-      angleSine === 0 ? 1 - progress : Math.sin((1 - progress) * angle) / angleSine
-    const endWeight =
-      angleSine === 0 ? progress : Math.sin(progress * angle) / angleSine
-    const x = startWeight * start[0] + endWeight * end[0]
-    const y = startWeight * start[1] + endWeight * end[1]
-    const z = startWeight * start[2] + endWeight * end[2]
-    const latitude = (Math.atan2(z, Math.sqrt(x * x + y * y)) * 180) / Math.PI
-    let longitude = (Math.atan2(y, x) * 180) / Math.PI
-
-    while (longitude - previousLongitude > 180) longitude -= 360
-    while (longitude - previousLongitude < -180) longitude += 360
-
-    points.push([latitude, longitude])
-    previousLongitude = longitude
-  }
-
-  return points
 }
 
 function getBearing(from, to) {
@@ -194,10 +149,6 @@ function TripMap({
   onSelectPlace,
 }) {
   const copy = UI_COPY[language] ?? UI_COPY.es
-  const routes = useMemo(
-    () => legs.map((leg) => createGeodesic(leg.from, leg.to)),
-    [legs],
-  )
   const activeLeg = legs[activeRoute]
   const mapPlaces = useMemo(
     () => {
@@ -224,6 +175,10 @@ function TripMap({
       ]
     },
     [copy.destination, copy.origin, destination, origin, stops],
+  )
+  const { places: displayPlaces, routes, boundsPoints } = useMemo(
+    () => buildMapGeometry(mapPlaces, legs),
+    [legs, mapPlaces],
   )
   const activeColor =
     CATEGORY_COLORS[activeLeg?.category] ??
@@ -276,7 +231,7 @@ function TripMap({
         />
       )}
 
-      {mapPlaces.map((stop) => {
+      {displayPlaces.map((stop) => {
         const isActive =
           stop.id === activeLeg?.from.id || stop.id === activeLeg?.to.id
         const isSelected = stop.id === selectedPlaceId
@@ -319,7 +274,7 @@ function TripMap({
       )}
 
       <MapController
-        stops={mapPlaces}
+        boundsPoints={boundsPoints}
         routes={routes}
         activeRoute={activeRoute}
       />
