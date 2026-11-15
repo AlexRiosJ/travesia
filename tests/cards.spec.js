@@ -30,6 +30,20 @@ for (const language of ['es', 'en']) {
       const outsideTarget = isMobile
         ? page.getByRole('link', { name: 'Travesía, inicio' })
         : mapHeading
+      await expect(
+        page.getByRole('button', {
+          name:
+            language === 'en'
+              ? 'View transfer from Seattle, WA to Guadalajara, México'
+              : 'Ver traslado de Seattle, WA a Guadalajara, México',
+          exact: true,
+        }),
+      ).toBeEnabled()
+      const cardHeader = (card) => card.locator(':scope > .ant-collapse-header')
+      const expectOpen = (card) =>
+        expect(cardHeader(card)).toHaveAttribute('aria-expanded', 'true')
+      const expectClosed = (card) =>
+        expect(cardHeader(card)).toHaveAttribute('aria-expanded', 'false')
 
       await interact(tripTrigger)
       await expect(tripPopup).toBeVisible()
@@ -67,57 +81,57 @@ for (const language of ['es', 'en']) {
         page.locator('.stop-node:not(.is-nested)').first(),
         page.locator('.endpoint-node').last(),
       ]) {
-        const summary = card.locator(':scope > summary')
+        const summary = cardHeader(card)
         const input = card.locator('input[type="text"]').first()
         await interact(summary)
         await input.fill('Edited city')
-        await expect(card).toHaveAttribute('open', '')
+        await expectOpen(card)
         await page.keyboard.press('Escape')
-        await expect(card).not.toHaveAttribute('open')
+        await expectClosed(card)
         await expect(summary).toBeFocused()
         await interact(summary)
         await expect(input).toHaveValue('Edited city')
         await input.focus()
         await interact(mapHeading)
-        await expect(card).not.toHaveAttribute('open')
+        await expectClosed(card)
         await interact(summary)
         await input.focus()
         await interact(tripName)
-        await expect(card).not.toHaveAttribute('open')
+        await expectClosed(card)
         await expect(tripName).toBeFocused()
       }
 
       const parent = page.locator('.stop-node:not(.is-nested)').first()
-      const parentSummary = parent.locator(':scope > summary')
+      const parentSummary = cardHeader(parent)
       const child = parent.locator('.is-nested').first()
-      const childSummary = child.locator(':scope > summary')
+      const childSummary = cardHeader(child)
       await interact(parentSummary)
       await interact(childSummary)
       await child.locator('input[type="text"]').fill('Edited day trip')
-      await expect(child).toHaveAttribute('open', '')
-      await expect(parent).toHaveAttribute('open', '')
+      await expectOpen(child)
+      await expectOpen(parent)
 
-      await interact(parent.locator(':scope > .stop-node-body input[type="text"]').first())
-      await expect(child).not.toHaveAttribute('open')
-      await expect(parent).toHaveAttribute('open', '')
+      await interact(parent.locator('.stop-node-body > .place-fields input[type="text"]').first())
+      await expectClosed(child)
+      await expectOpen(parent)
       await interact(childSummary)
       await child.locator('input[type="text"]').focus()
       await page.keyboard.press('Escape')
-      await expect(child).not.toHaveAttribute('open')
-      await expect(parent).not.toHaveAttribute('open')
+      await expectClosed(child)
+      await expectClosed(parent)
       await expect(parentSummary).toBeFocused()
 
       await interact(parentSummary)
-      await expect(parent).toHaveAttribute('open', '')
-      await expect(child).not.toHaveAttribute('open')
+      await expectOpen(parent)
+      await expectClosed(child)
       await interact(mapHeading)
-      await expect(page.locator('details[open]')).toHaveCount(0)
+      await expect(page.locator('.itinerary-collapse .ant-collapse-item-active')).toHaveCount(0)
 
       await interact(parentSummary)
       const nextCard = page.locator('.stop-node:not(.is-nested)').nth(1)
-      await interact(nextCard.locator(':scope > summary'))
-      await expect(parent).not.toHaveAttribute('open')
-      await expect(nextCard).toHaveAttribute('open', '')
+      await interact(cardHeader(nextCard))
+      await expectClosed(parent)
+      await expectOpen(nextCard)
       await interact(mapHeading)
 
       await interact(parentSummary)
@@ -129,8 +143,17 @@ for (const language of ['es', 'en']) {
       const childCount = await parent.locator('.is-nested').count()
       await interact(addDayTrip)
       await expect(parent.locator('.is-nested')).toHaveCount(childCount + 1)
-      await expect(child).not.toHaveAttribute('open')
-      await expect(parent).toHaveAttribute('open', '')
+      await expectClosed(child)
+      await expectOpen(parent)
+      await parent
+        .locator('.is-nested')
+        .last()
+        .getByRole('button', {
+          name: language === 'en' ? 'Delete stop 1b' : 'Eliminar parada 1b',
+          exact: true,
+        })
+        .click()
+      await expect(parent.locator('.is-nested')).toHaveCount(childCount)
       await interact(mapHeading)
 
       await interact(tripTrigger)
@@ -165,4 +188,70 @@ test('creates, renames, switches, and deletes trips', async ({ page }) => {
   }).click()
   await expect(tripName).toHaveValue('Delete me')
   await expect(tripMenu).toContainText('1')
+})
+
+test('edits itinerary dates and transfers, toggles all cards, and saves changes', async ({
+  page,
+}) => {
+  await page.addInitScript(() => localStorage.setItem('rumbo-language', 'en'))
+  await page.goto('./')
+
+  const activeCards = page.locator(
+    '.itinerary-collapse .ant-collapse-item-active',
+  )
+  const expandAll = page.getByRole('button', { name: 'Expand all' })
+  const collapseAll = page.getByRole('button', { name: 'Collapse all' })
+  await expandAll.click()
+  await expect(activeCards).toHaveCount(7)
+  await collapseAll.click()
+  await expect(activeCards).toHaveCount(0)
+
+  const stayCards = page.locator('.stop-node:not(.is-nested)')
+  await page.getByRole('button', { name: 'Add stay' }).click()
+  await expect(stayCards).toHaveCount(5)
+  await stayCards.last().locator(':scope > .ant-collapse-header').click()
+  await stayCards
+    .last()
+    .getByRole('button', { name: 'Delete stop 5', exact: true })
+    .click()
+  await expect(stayCards).toHaveCount(4)
+
+  const firstStop = page.locator('.stop-node:not(.is-nested)').first()
+  await firstStop.locator(':scope > .ant-collapse-header').click()
+  const arrival = firstStop.locator('input[type="date"]').first()
+  await arrival.fill('2027-03-14')
+  await expect(arrival).toHaveValue('2027-03-14')
+
+  const transferControl = page.getByRole('textbox', { name: 'Transport' }).first()
+  await transferControl.fill('Train')
+  const transferButton = page.getByRole('button', {
+    name: 'View transfer from Seattle, WA to Guadalajara, México',
+  })
+  await expect(transferButton).toBeEnabled()
+  await transferButton.click()
+  await expect(page.locator('.active-route-context')).toContainText('Seattle, WA')
+
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const { trips } = JSON.parse(
+          localStorage.getItem('rumbo-trip-library-v1'),
+        )
+        return [
+          trips[0].draftStops[0].startDate,
+          trips[0].origin.transport,
+        ]
+      }),
+    )
+    .toEqual(['2027-03-14', 'Train'])
+
+  await page.reload()
+  const restoredStop = page.locator('.stop-node:not(.is-nested)').first()
+  await restoredStop.locator(':scope > .ant-collapse-header').click()
+  await expect(restoredStop.locator('input[type="date"]').first()).toHaveValue(
+    '2027-03-14',
+  )
+  await expect(
+    page.getByRole('textbox', { name: 'Transport' }).first(),
+  ).toHaveValue('Train')
 })
