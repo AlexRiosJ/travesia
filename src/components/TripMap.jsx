@@ -249,19 +249,21 @@ function TripMap({
             icon={markerIcon}
             eventHandlers={{ click: () => onSelectPlace(stop.id) }}
           >
-            <Tooltip
-              permanent
-              direction="top"
-              offset={[0, -18]}
-              className="place-label"
-            >
-              {stop.place}
-              {stop.endpointLabel
-                ? ` · ${stop.endpointLabel}`
-                : stop.category === 'day-trip'
-                  ? ` · ${copy.dayTrip}`
-                  : ''}
-            </Tooltip>
+            {(isSelected || isActive) && (
+              <Tooltip
+                permanent
+                direction="top"
+                offset={[0, -18]}
+                className="place-label"
+              >
+                {stop.place}
+                {stop.endpointLabel
+                  ? ` · ${stop.endpointLabel}`
+                  : stop.category === 'day-trip'
+                    ? ` · ${copy.dayTrip}`
+                    : ''}
+              </Tooltip>
+            )}
           </Marker>
         )
       })}
