@@ -28,7 +28,8 @@ npm run lint
 npm run build
 ```
 
-Las pruebas de cierre de opciones cubren teclado, puntero y pantallas móviles:
+Las pruebas de cierre de tarjetas (opciones, viajes e itinerario) cubren teclado,
+puntero y pantallas móviles:
 
 ```bash
 npx playwright install chromium

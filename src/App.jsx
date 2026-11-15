@@ -29,6 +29,14 @@ const LEGACY_TRANSPORT_LABELS = {
   ferry: 'Ferry',
 }
 
+function dismissCard(card) {
+  if (!card?.open) return
+
+  const restoreFocus = card.contains(document.activeElement)
+  card.open = false
+  if (restoreFocus) card.querySelector(':scope > summary').focus()
+}
+
 function formatTransport(transport) {
   if (transport === 'unspecified' || transport === 'Por definir') return ''
   return LEGACY_TRANSPORT_LABELS[transport] || transport || ''
@@ -469,7 +477,6 @@ function App() {
   const routeGenerationController = useRef(null)
   const generateRouteRef = useRef(null)
   const tripMenuRef = useRef(null)
-  const settingsMenuRef = useRef(null)
   const copy = UI_COPY[language] ?? UI_COPY.es
   const resolvedTheme =
     theme === 'system' ? (systemDark ? 'dark' : 'light') : theme
@@ -652,28 +659,28 @@ function App() {
   }, [])
 
   useEffect(() => {
-    const settings = settingsMenuRef.current
-
-    function dismissSettings() {
-      if (!settings.open) return
-
-      const restoreFocus = settings.contains(document.activeElement)
-      settings.open = false
-      if (restoreFocus) settings.querySelector('summary').focus()
-    }
-
-    function handlePointerDown(event) {
-      if (!settings.contains(event.target)) dismissSettings()
+    function handleOutsideInteraction(event) {
+      document.querySelectorAll('details[open]').forEach((card) => {
+        // Inline cards must stay in place until the click reaches its target.
+        if (
+          !card.contains(event.target) &&
+          (event.type === 'click' || card.matches('.trip-menu, .settings-menu'))
+        ) dismissCard(card)
+      })
     }
 
     function handleKeyDown(event) {
-      if (event.key === 'Escape') dismissSettings()
+      if (event.key === 'Escape') {
+        document.querySelectorAll('details[open]').forEach(dismissCard)
+      }
     }
 
-    document.addEventListener('pointerdown', handlePointerDown, true)
+    document.addEventListener('pointerdown', handleOutsideInteraction, true)
+    document.addEventListener('click', handleOutsideInteraction, true)
     document.addEventListener('keydown', handleKeyDown)
     return () => {
-      document.removeEventListener('pointerdown', handlePointerDown, true)
+      document.removeEventListener('pointerdown', handleOutsideInteraction, true)
+      document.removeEventListener('click', handleOutsideInteraction, true)
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [])
@@ -788,7 +795,7 @@ function App() {
   }
 
   function switchTrip(tripId) {
-    if (tripMenuRef.current) tripMenuRef.current.open = false
+    dismissCard(tripMenuRef.current)
     setLibrary((current) => ({ ...current, activeTripId: tripId }))
     setActiveRoute(-1)
     setSelectedPlaceId(null)
@@ -798,7 +805,7 @@ function App() {
   }
 
   function addTrip() {
-    if (tripMenuRef.current) tripMenuRef.current.open = false
+    dismissCard(tripMenuRef.current)
     const trip = createBlankTrip()
     setLibrary((current) => ({
       ...current,
@@ -821,7 +828,7 @@ function App() {
       `¿Eliminar "${activeTrip.title}" de este navegador?`,
     )
     if (!shouldRemove) return
-    if (tripMenuRef.current) tripMenuRef.current.open = false
+    dismissCard(tripMenuRef.current)
 
     setLibrary((current) => {
       const trips = current.trips.filter((trip) => trip.id !== activeTrip.id)
@@ -1076,7 +1083,7 @@ function App() {
               </button>
             </div>
           </details>
-          <details className="settings-menu" ref={settingsMenuRef}>
+          <details className="settings-menu">
             <summary
               aria-label={copy.settings}
               title={copy.settings}
