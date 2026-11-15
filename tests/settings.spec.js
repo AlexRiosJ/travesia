@@ -108,11 +108,15 @@ test('supports keyboard opening, tab navigation, and Escape without trapping foc
 test('dismisses settings when the system theme changes to dark', async ({ page }) => {
   await page.goto('./')
   const settings = page.locator('.settings-menu')
+  const language = await page.locator('html').getAttribute('lang')
   await settings.locator('summary').click()
   await page.emulateMedia({ colorScheme: 'dark' })
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await expect(settings).toHaveAttribute('open', '')
-  await settings.getByRole('button', { name: 'Sistema', exact: true }).focus()
+  await settings.getByRole('button', {
+    name: language === 'en' ? 'System' : 'Sistema',
+    exact: true,
+  }).focus()
   await page.keyboard.press('Escape')
   await expect(settings).not.toHaveAttribute('open')
   await expect(settings.locator('summary')).toBeFocused()

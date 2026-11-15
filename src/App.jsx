@@ -459,7 +459,11 @@ function App() {
   const [mapStepCursor, setMapStepCursor] = useState(-1)
   const [treeExpansion, setTreeExpansion] = useState(null)
   const [language, setLanguage] = useState(
-    () => localStorage.getItem('rumbo-language') || 'es',
+    () => {
+      const savedLanguage = localStorage.getItem('rumbo-language')
+      if (savedLanguage === 'en' || savedLanguage === 'es') return savedLanguage
+      return navigator.language?.toLowerCase().startsWith('es') ? 'es' : 'en'
+    },
   )
   const [theme, setTheme] = useState(
     () => localStorage.getItem('rumbo-theme') || 'system',
