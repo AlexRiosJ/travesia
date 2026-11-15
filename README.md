@@ -28,7 +28,8 @@ npm run lint
 npm run build
 ```
 
-The settings dismissal tests cover keyboard, pointer, and mobile interactions:
+The card dismissal tests (settings, trips, and itinerary) cover keyboard, pointer,
+and mobile interactions:
 
 ```bash
 npx playwright install chromium
