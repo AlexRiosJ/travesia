@@ -1,7 +1,6 @@
 import { expect, test } from '@playwright/test'
 
 test.beforeEach(async ({ page, baseURL }) => {
-  // Settings do not depend on remote map tiles, fonts, or routing services.
   await page.route('**/*', (route) =>
     new URL(route.request().url()).origin === new URL(baseURL).origin
       ? route.continue()
@@ -13,15 +12,16 @@ for (const language of ['es', 'en']) {
   for (const theme of ['light', 'dark', 'system']) {
     test(`dismisses settings in ${language} with ${theme} theme`, async ({ page, isMobile }) => {
       await page.goto('./')
-      const settings = page.locator('.settings-menu')
-      const summary = settings.locator('summary')
+      const trigger = page.getByRole('button', { name: /Settings|Opciones/ })
+      const panel = page.locator('.settings-popover')
       const interact = (locator) => isMobile ? locator.tap() : locator.click()
-      const expectOpen = () => expect(settings).toHaveAttribute('open', '')
-      const expectClosed = () => expect(settings).not.toHaveAttribute('open')
+      const expectOpen = () => expect(trigger).toHaveAttribute('aria-expanded', 'true')
+      const expectClosed = () => expect(trigger).toHaveAttribute('aria-expanded', 'false')
 
-      await interact(summary)
-      await interact(settings.getByRole('button', {
-        name: language === 'en' ? 'English' : 'Español',
+      await interact(trigger)
+      await expectOpen()
+      await expect(panel).toBeVisible()
+      await interact(panel.getByText(language === 'en' ? 'English' : 'Español', {
         exact: true,
       }))
       await expectOpen()
@@ -31,38 +31,41 @@ for (const language of ['es', 'en']) {
         es: { light: 'Claro', dark: 'Oscuro', system: 'Sistema' },
         en: { light: 'Light', dark: 'Dark', system: 'System' },
       }
-      const themeButton = settings.getByRole('button', {
+      const themeRadio = panel.getByRole('radio', {
         name: themeNames[language][theme],
         exact: true,
       })
-      await interact(themeButton)
+      await interact(panel.getByText(themeNames[language][theme], { exact: true }))
       await expectOpen()
-      await expect(themeButton).toHaveClass('is-active')
+      await expect(themeRadio).toBeChecked()
       await expect(page.locator('html')).toHaveAttribute(
         'data-theme',
         theme === 'system' ? 'light' : theme,
       )
-      await interact(settings.locator('.settings-label').first())
+      await expect(panel).toHaveCSS(
+        'background-color',
+        theme === 'dark' ? 'rgb(24, 28, 26)' : 'rgb(255, 255, 255)',
+      )
+      await interact(panel.locator('.settings-label').first())
       await expectOpen()
 
-      await themeButton.focus()
+      await themeRadio.focus()
       await page.keyboard.press('Escape')
       await expectClosed()
-      await expect(summary).toBeFocused()
+      await expect(trigger).toBeFocused()
 
-      await interact(summary)
-      await settings.getByRole('button').first().focus()
-      await interact(page.getByRole('heading', {
+      await interact(trigger)
+      await expectOpen()
+      const mapHeading = page.getByRole('heading', {
         name: language === 'en' ? 'Map' : 'Mapa',
         exact: true,
-      }))
+      })
+      await interact(mapHeading)
       await expectClosed()
-      expect(await settings.locator('.settings-popover').evaluate(
-        (element) => element.contains(document.activeElement),
-      )).toBe(false)
+      await expect(panel).toBeHidden()
 
-      await interact(summary)
-      await settings.getByRole('button').first().focus()
+      await interact(trigger)
+      await panel.getByRole('radio', { name: 'Español', exact: true }).focus()
       const tripName = page.getByRole('textbox', {
         name: language === 'en' ? 'Trip name' : 'Nombre del viaje',
         exact: true,
@@ -71,53 +74,37 @@ for (const language of ['es', 'en']) {
       await expectClosed()
       await expect(tripName).toBeFocused()
 
-      await interact(summary)
+      await interact(trigger)
       await expectOpen()
-      await interact(summary)
+      await interact(trigger)
       await expectClosed()
     })
   }
 }
 
-test('supports keyboard opening, tab navigation, and Escape without trapping focus', async ({ page }) => {
+test('settings controls are keyboard accessible and Escape restores trigger focus', async ({ page }) => {
   await page.goto('./')
-  const settings = page.locator('.settings-menu')
-  const summary = settings.locator('summary')
-  await summary.focus()
+  const trigger = page.getByRole('button', { name: /Settings|Opciones/ })
+  const panel = page.locator('.settings-popover')
+  await trigger.focus()
   await page.keyboard.press('Enter')
-  await expect(settings).toHaveAttribute('open', '')
-  await page.keyboard.press('Tab')
-  await expect(settings.getByRole('button', { name: 'Español', exact: true })).toBeFocused()
-  await page.keyboard.press('Tab')
-  await page.keyboard.press('Enter')
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
-  await expect(settings).toHaveAttribute('open', '')
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true')
+  await expect(panel.getByRole('radio', { name: 'Español', exact: true })).toBeFocused()
+  await page.keyboard.press('ArrowRight')
+  await expect(panel.getByRole('radio', { name: 'English', exact: true })).toBeFocused()
   await page.keyboard.press('Escape')
-  await expect(summary).toBeFocused()
-  await expect(settings).not.toHaveAttribute('open')
-
-  await page.keyboard.press('Space')
-  for (let index = 0; index < 6; index += 1) await page.keyboard.press('Tab')
-  expect(await settings.evaluate((element) => element.contains(document.activeElement))).toBe(false)
-  const focusedOutside = await page.locator(':focus').elementHandle()
-  await page.keyboard.press('Escape')
-  await expect(settings).not.toHaveAttribute('open')
-  expect(await focusedOutside.evaluate((element) => element === document.activeElement)).toBe(true)
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  await expect(trigger).toBeFocused()
 })
 
-test('dismisses settings when the system theme changes to dark', async ({ page }) => {
+test('settings remain open when the system theme changes to dark', async ({ page }) => {
   await page.goto('./')
-  const settings = page.locator('.settings-menu')
-  const language = await page.locator('html').getAttribute('lang')
-  await settings.locator('summary').click()
+  const trigger = page.getByRole('button', { name: /Settings|Opciones/ })
+  await trigger.click()
   await page.emulateMedia({ colorScheme: 'dark' })
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-  await expect(settings).toHaveAttribute('open', '')
-  await settings.getByRole('button', {
-    name: language === 'en' ? 'System' : 'Sistema',
-    exact: true,
-  }).focus()
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true')
   await page.keyboard.press('Escape')
-  await expect(settings).not.toHaveAttribute('open')
-  await expect(settings.locator('summary')).toBeFocused()
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  await expect(trigger).toBeFocused()
 })

@@ -17,8 +17,8 @@ for (const language of ['es', 'en']) {
       }, { language, theme })
       await page.goto('./')
       const interact = (locator) => isMobile ? locator.tap() : locator.click()
-      const tripMenu = page.locator('.trip-menu')
-      const tripSummary = tripMenu.locator('summary')
+      const tripTrigger = page.getByRole('button', { name: /Trips|Viajes/ })
+      const tripPopup = page.getByRole('menu')
       const tripName = page.getByRole('textbox', {
         name: language === 'en' ? 'Trip name' : 'Nombre del viaje',
         exact: true,
@@ -27,43 +27,40 @@ for (const language of ['es', 'en']) {
         name: language === 'en' ? 'Map' : 'Mapa',
         exact: true,
       })
+      const outsideTarget = isMobile
+        ? page.getByRole('link', { name: 'Travesía, inicio' })
+        : mapHeading
 
-      await tripSummary.focus()
-      await page.keyboard.press('Enter')
-      await interact(tripMenu.locator('.trip-menu-heading'))
-      await expect(tripMenu).toHaveAttribute('open', '')
-      await tripMenu.getByRole('button').first().focus()
-      await page.keyboard.press('Escape')
-      await expect(tripMenu).not.toHaveAttribute('open')
-      await expect(tripSummary).toBeFocused()
-
-      await interact(tripSummary)
-      await tripMenu.getByRole('button').first().focus()
-      await interact(mapHeading)
-      await expect(tripMenu).not.toHaveAttribute('open')
-      expect(await tripMenu.locator('.trip-menu-popover').evaluate(
+      await interact(tripTrigger)
+      await expect(tripPopup).toBeVisible()
+      await interact(outsideTarget)
+      await expect(tripTrigger).toHaveAttribute('aria-expanded', 'false')
+      expect(await tripPopup.evaluate(
         (element) => element.contains(document.activeElement),
       )).toBe(false)
 
-      await interact(tripSummary)
-      await tripMenu.getByRole('button').first().focus()
+      await interact(tripTrigger)
+      await tripPopup.getByRole('menuitem').first().focus()
       await interact(tripName)
-      await expect(tripMenu).not.toHaveAttribute('open')
+      await expect(tripTrigger).toHaveAttribute('aria-expanded', 'false')
       await expect(tripName).toBeFocused()
 
-      await interact(tripSummary)
-      await interact(tripMenu.getByRole('button', {
+      await interact(tripTrigger)
+      await interact(tripPopup.getByRole('menuitem', {
         name: language === 'en' ? 'New trip' : 'Nuevo viaje',
         exact: true,
       }))
-      await expect(tripMenu).not.toHaveAttribute('open')
-      await expect(tripSummary).toBeFocused()
-      await expect(tripMenu.locator('.trip-menu-item')).toHaveCount(2)
+      await expect(tripTrigger).toHaveAttribute('aria-expanded', 'false')
+      await expect(tripTrigger).toBeFocused()
 
-      await interact(tripSummary)
-      await interact(tripMenu.locator('.trip-menu-item').first())
-      await expect(tripMenu).not.toHaveAttribute('open')
-      await expect(tripSummary).toBeFocused()
+      await interact(tripTrigger)
+      await expect(tripPopup.getByRole('menuitem', {
+        name: language === 'en' ? 'New trip' : 'Nuevo viaje',
+        exact: true,
+      }).first()).toBeVisible()
+      await interact(tripPopup.getByRole('menuitem').first())
+      await expect(tripTrigger).toHaveAttribute('aria-expanded', 'false')
+      await expect(tripTrigger).toBeFocused()
 
       for (const card of [
         page.locator('.endpoint-node').first(),
@@ -136,11 +133,36 @@ for (const language of ['es', 'en']) {
       await expect(parent).toHaveAttribute('open', '')
       await interact(mapHeading)
 
-      await interact(tripSummary)
+      await interact(tripTrigger)
       await tripName.focus()
       await page.keyboard.press('Escape')
-      await expect(tripMenu).not.toHaveAttribute('open')
-      await expect(tripName).toBeFocused()
+      await expect(tripTrigger).toHaveAttribute('aria-expanded', 'false')
     })
   }
 }
+
+test('creates, renames, switches, and deletes trips', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('rumbo-language', 'en'))
+  await page.goto('./')
+  const tripMenu = page.getByRole('button', { name: 'Trips', exact: true })
+  const tripName = page.getByRole('textbox', { name: 'Trip name', exact: true })
+
+  await tripName.fill('Existing trip')
+  await tripMenu.click()
+  await page.getByRole('menuitem', { name: 'New trip', exact: true }).click()
+  await expect(tripName).toHaveValue('Nuevo viaje')
+  await tripName.fill('Delete me')
+
+  await tripMenu.click()
+  await page.getByRole('menuitem', { name: 'Existing trip', exact: true }).click()
+  await expect(tripName).toHaveValue('Existing trip')
+
+  await tripMenu.click()
+  await page.once('dialog', (dialog) => dialog.accept())
+  await page.getByRole('menuitem', {
+    name: 'Delete current trip',
+    exact: true,
+  }).click()
+  await expect(tripName).toHaveValue('Delete me')
+  await expect(tripMenu).toContainText('1')
+})

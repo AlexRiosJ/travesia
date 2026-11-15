@@ -21,12 +21,12 @@ import {
   DesktopOutlined,
   DownOutlined,
   EditOutlined,
+  EnvironmentOutlined,
   ExpandOutlined,
   LeftOutlined,
-  MapOutlined,
   MoonOutlined,
   PauseOutlined,
-  PlayOutlined,
+  PlayCircleOutlined,
   PlusOutlined,
   RightOutlined,
   SettingOutlined,
@@ -294,7 +294,7 @@ function StopCard({
             disabled={totalStops <= 1}
             aria-label={`Eliminar ${stop.place || `parada ${displayLabel}`}`}
             title={copy.delete}
-            icon={<DeleteOutlined />}
+            icon={<DeleteOutlined aria-hidden="true" />}
           />
         </div>
       </div>
@@ -427,6 +427,7 @@ function App() {
   const geocodeCache = useRef(new Map())
   const routeGenerationController = useRef(null)
   const generateRouteRef = useRef(null)
+  const settingsPanelRef = useRef(null)
   const copy = UI_COPY[language] ?? UI_COPY.es
   const resolvedTheme =
     theme === 'system' ? (systemDark ? 'dark' : 'light') : theme
@@ -609,6 +610,53 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (!settingsOpen) return undefined
+
+    const frame = window.requestAnimationFrame(() => {
+      settingsPanelRef.current
+        ?.querySelector('input[type="radio"]')
+        ?.focus()
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [settingsOpen])
+
+  useEffect(() => {
+    function restoreMenuFocus(event) {
+      if (event.key !== 'Escape') return
+
+      if (settingsOpen) {
+        const focusTarget = document.activeElement
+        const focusInsideSettings = settingsPanelRef.current?.contains(
+          focusTarget,
+        )
+        setSettingsOpen(false)
+        if (focusInsideSettings) {
+          document.querySelector('.settings-trigger')?.focus()
+        } else if (focusTarget !== document.body) {
+          window.requestAnimationFrame(() => {
+            if (focusTarget.isConnected) focusTarget.focus()
+          })
+        }
+      }
+      if (tripMenuOpen) {
+        const focusTarget = document.activeElement
+        const focusInsideTripMenu = focusTarget.closest('.ant-dropdown-menu')
+        setTripMenuOpen(false)
+        if (focusInsideTripMenu) {
+          document.querySelector('.trip-menu-trigger')?.focus()
+        } else if (focusTarget !== document.body) {
+          window.requestAnimationFrame(() => {
+            if (focusTarget.isConnected) focusTarget.focus()
+          })
+        }
+      }
+    }
+
+    document.addEventListener('keydown', restoreMenuFocus, true)
+    return () => document.removeEventListener('keydown', restoreMenuFocus, true)
+  }, [settingsOpen, tripMenuOpen])
+
+  useEffect(() => {
     function handleOutsideInteraction(event) {
       document.querySelectorAll('details[open]').forEach((card) => {
         if (!card.contains(event.target) && event.type === 'click') {
@@ -740,8 +788,15 @@ function App() {
     })
   }
 
-  function switchTrip(tripId) {
+  function closeTripMenu() {
     setTripMenuOpen(false)
+    window.requestAnimationFrame(() =>
+      document.querySelector('.trip-menu-trigger')?.focus(),
+    )
+  }
+
+  function switchTrip(tripId) {
+    closeTripMenu()
     setLibrary((current) => ({ ...current, activeTripId: tripId }))
     setActiveRoute(-1)
     setSelectedPlaceId(null)
@@ -751,7 +806,7 @@ function App() {
   }
 
   function addTrip() {
-    setTripMenuOpen(false)
+    closeTripMenu()
     const trip = createBlankTrip()
     setLibrary((current) => ({
       ...current,
@@ -774,7 +829,7 @@ function App() {
       `¿Eliminar "${activeTrip.title}" de este navegador?`,
     )
     if (!shouldRemove) return
-    setTripMenuOpen(false)
+    closeTripMenu()
 
     setLibrary((current) => {
       const trips = current.trips.filter((trip) => trip.id !== activeTrip.id)
@@ -1002,9 +1057,11 @@ function App() {
         </label>
         <div className="topbar-actions">
           <Dropdown
-            className="trip-menu"
+            className={`trip-menu${tripMenuOpen ? ' is-open' : ''}`}
+            classNames={{ menu: 'trip-menu-overlay' }}
             trigger={['click']}
             placement="bottomRight"
+            autoFocus
             open={tripMenuOpen}
             onOpenChange={setTripMenuOpen}
             menu={{
@@ -1024,12 +1081,12 @@ function App() {
                 {
                   key: 'add-trip',
                   label: copy.newTrip,
-                  icon: <PlusOutlined />,
+                  icon: <PlusOutlined aria-hidden="true" />,
                 },
                 {
                   key: 'delete-trip',
                   label: copy.deleteTrip,
-                  icon: <DeleteOutlined />,
+                  icon: <DeleteOutlined aria-hidden="true" />,
                   danger: true,
                   disabled: library.trips.length <= 1,
                 },
@@ -1047,23 +1104,24 @@ function App() {
           >
             <Button
               className="trip-menu-trigger"
-              icon={<MapOutlined />}
+              icon={<EnvironmentOutlined aria-hidden="true" />}
               aria-label={copy.trips}
               aria-expanded={tripMenuOpen}
             >
               <span>{copy.trips}</span>
               <span className="trip-menu-count">{library.trips.length}</span>
-              <DownOutlined />
+              <DownOutlined aria-hidden="true" />
             </Button>
           </Dropdown>
           <Dropdown
-            className="settings-menu"
+            className={`settings-menu${settingsOpen ? ' is-open' : ''}`}
             trigger={['click']}
             placement="bottomRight"
+            autoFocus
             open={settingsOpen}
             onOpenChange={setSettingsOpen}
-            dropdownRender={() => (
-              <div className="settings-popover">
+            popupRender={() => (
+              <div className="settings-popover" ref={settingsPanelRef}>
               <span className="settings-label">{copy.language}</span>
                 <Segmented
                   className="settings-segmented"
@@ -1081,9 +1139,9 @@ function App() {
                   aria-label={copy.theme}
                   value={theme}
                   options={[
-                    { label: <><SunOutlined /> {copy.light}</>, value: 'light' },
-                    { label: <><MoonOutlined /> {copy.dark}</>, value: 'dark' },
-                    { label: <><DesktopOutlined /> {copy.system}</>, value: 'system' },
+                    { label: <><SunOutlined aria-hidden="true" /> {copy.light}</>, value: 'light' },
+                    { label: <><MoonOutlined aria-hidden="true" /> {copy.dark}</>, value: 'dark' },
+                    { label: <><DesktopOutlined aria-hidden="true" /> {copy.system}</>, value: 'system' },
                   ]}
                   onChange={setTheme}
                 />
@@ -1095,10 +1153,10 @@ function App() {
               aria-label={copy.settings}
               title={copy.settings}
               aria-expanded={settingsOpen}
-              icon={<SettingOutlined />}
+              icon={<SettingOutlined aria-hidden="true" />}
             />
           </Dropdown>
-          <Tag className="trip-chip" icon={<CalendarOutlined />}>
+          <Tag className="trip-chip" icon={<CalendarOutlined aria-hidden="true" />}>
               {tripDateRange
                 ? formatDateRange(
                     tripDateRange.startDate,
@@ -1141,7 +1199,7 @@ function App() {
                 disabled={currentMapStepIndex <= 0}
                 aria-label={copy.previousStep}
                 title={copy.previousStep}
-                icon={<LeftOutlined />}
+                icon={<LeftOutlined aria-hidden="true" />}
               />
               <Button
                 htmlType="button"
@@ -1149,7 +1207,11 @@ function App() {
                 className="play-button"
                 onClick={togglePlayback}
                 disabled={routes === 0}
-                icon={isPlaying ? <PauseOutlined /> : <PlayOutlined />}
+                icon={
+                  isPlaying
+                    ? <PauseOutlined aria-hidden="true" />
+                    : <PlayCircleOutlined aria-hidden="true" />
+                }
               >
                 {isPlaying ? copy.pause : copy.playTrip}
               </Button>
@@ -1164,7 +1226,7 @@ function App() {
                 }
                 aria-label={copy.nextStep}
                 title={copy.nextStep}
-                icon={<RightOutlined />}
+                icon={<RightOutlined aria-hidden="true" />}
               />
             </div>
           </div>
@@ -1313,7 +1375,7 @@ function App() {
                     version: Date.now(),
                   })
                 }
-                icon={<ExpandOutlined />}
+                icon={<ExpandOutlined aria-hidden="true" />}
               />
               <Button
                 htmlType="button"
@@ -1327,7 +1389,7 @@ function App() {
                     version: Date.now(),
                   })
                 }
-                icon={<ShrinkOutlined />}
+                icon={<ShrinkOutlined aria-hidden="true" />}
               />
             </div>
           </div>
@@ -1498,7 +1560,7 @@ function App() {
               type="dashed"
               className="add-button"
               onClick={addStop}
-              icon={<PlusOutlined />}
+              icon={<PlusOutlined aria-hidden="true" />}
             >
               {copy.addStay}
             </Button>
@@ -1507,7 +1569,7 @@ function App() {
           {status.message && (
             <Alert
               className={`status-message status-message--${status.type}`}
-              message={status.message}
+              title={status.message}
               type={status.type === 'error' ? 'error' : status.type === 'success' ? 'success' : 'info'}
               showIcon
               role={status.type === 'loading' ? 'status' : 'alert'}
