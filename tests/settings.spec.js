@@ -18,9 +18,19 @@ for (const language of ['es', 'en']) {
       const expectOpen = () => expect(trigger).toHaveAttribute('aria-expanded', 'true')
       const expectClosed = () => expect(trigger).toHaveAttribute('aria-expanded', 'false')
 
+      await expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      ).toBe(true)
       await interact(trigger)
       await expectOpen()
       await expect(panel).toBeVisible()
+      await expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      ).toBe(true)
       await interact(panel.getByText(language === 'en' ? 'English' : 'Español', {
         exact: true,
       }))

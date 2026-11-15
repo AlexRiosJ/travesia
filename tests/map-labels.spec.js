@@ -46,7 +46,10 @@ test('clears route labels when playback completes', async ({ page }) => {
   const map = page.locator('.leaflet-map')
   const labels = map.locator('.place-label')
   const routeCount = Number(
-    await page.locator('.summary-card .summary-value').nth(2).textContent(),
+    await page
+      .locator('.summary-card .ant-statistic-content-value')
+      .nth(2)
+      .textContent(),
   )
 
   await page.locator('.play-button').click()
