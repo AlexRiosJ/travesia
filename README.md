@@ -27,6 +27,13 @@ npm run lint
 npm run build
 ```
 
+Las pruebas de cierre de opciones cubren teclado, puntero y pantallas móviles:
+
+```bash
+npx playwright install chromium
+npm run test:settings
+```
+
 ## GitHub Pages
 
 Los cambios enviados a `main` se publican automáticamente mediante GitHub
