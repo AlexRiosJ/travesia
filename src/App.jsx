@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Alert,
+  Badge,
   Button,
   Card,
   Collapse,
@@ -1221,7 +1222,8 @@ function App() {
       </section>
 
       <section className="workspace">
-        <section className="map-panel" aria-label={copy.map}>
+        <Card className="map-panel" role="region" aria-label={copy.map}
+          variant="borderless" styles={{ body: { padding: 0 } }}>
           <div className="map-heading">
             <h2>{copy.map}</h2>
             <div className="map-heading-controls">
@@ -1266,7 +1268,7 @@ function App() {
           </div>
 
           {activeLeg && (
-            <div className="active-route-context" aria-live="polite">
+            <Card className="active-route-context" size="small" aria-live="polite">
               <span>
                 {formatDate(activeLeg.date, language)}
               </span>
@@ -1275,18 +1277,18 @@ function App() {
               </strong>
               <small>
                 {activeLeg.direction === 'return'
-                  ? 'Regreso a la ciudad base'
+                  ? copy.returnToBase
                   : activeLeg.category === 'day-trip'
                     ? copy.dayTrip
                     : formatTransport(activeLeg.transport)
                       ? `${formatTransport(activeLeg.transport)} · ${copy.transfer}`
                       : copy.transfer}
               </small>
-            </div>
+            </Card>
           )}
 
           {!activeLeg && selectedPlace && (
-            <div className="selected-place-context" aria-live="polite">
+            <Card className="selected-place-context" size="small" aria-live="polite">
               <span>
                 {selectedPlace.selectionLabel ||
                   (selectedPlace.category === 'day-trip'
@@ -1303,28 +1305,23 @@ function App() {
                     )
                   : formatDate(selectedPlace.date, language)}{' '}
               </small>
-            </div>
+            </Card>
           )}
 
           {!activeLeg && !selectedPlace && (
-            <div className="map-selection-hint">
-              {copy.selectHint}
-            </div>
+            <Alert className="map-selection-hint" type="info" title={copy.selectHint} showIcon />
           )}
 
-          <div className="map-type-legend" aria-label="Tipos de elementos">
-            <span>
-              <i className="map-type-marker" />
+          <div className="map-type-legend" aria-label={copy.mapLegend}>
+            <Tag icon={<span className="map-type-marker" aria-hidden="true" />}>
               {copy.stay}
-            </span>
-            <span>
-              <i className="map-type-route" />
+            </Tag>
+            <Tag icon={<span className="map-type-route" aria-hidden="true" />}>
               {copy.transfer}
-            </span>
-            <span>
-              <i className="map-type-day-trip" />
+            </Tag>
+            <Tag icon={<span className="map-type-day-trip" aria-hidden="true" />}>
               {copy.dayTrip}
-            </span>
+            </Tag>
           </div>
 
           <div className="map-frame">
@@ -1340,14 +1337,13 @@ function App() {
               onSelectPlace={selectPlace}
             />
             {activeLeg && (
-              <div className="map-legend">
-                <span className="legend-pulse" />
-                {copy.routeActive}
-              </div>
+              <Tag className="map-legend">
+                <Badge status="processing" text={copy.routeActive} />
+              </Tag>
             )}
           </div>
 
-          <div className="timeline" aria-label="Etapas del viaje">
+          <div className="timeline" aria-label={copy.tripStages}>
             {resolvedStops.map((stop, index) => {
               const isActive =
                 index === selectedStopIndex ||
@@ -1388,7 +1384,7 @@ function App() {
               )
             })}
           </div>
-        </section>
+        </Card>
 
         <aside className="planner-panel">
           <div className="section-heading">

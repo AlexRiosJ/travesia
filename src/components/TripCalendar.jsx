@@ -1,3 +1,5 @@
+import { Button, Card, Empty, Tag } from 'antd'
+import { ArrowRightOutlined, DownloadOutlined, EnterOutlined } from '@ant-design/icons'
 import { buildStopLabels } from '../utils/stopLabels'
 import { UI_COPY, getLocale } from '../i18n'
 
@@ -256,56 +258,52 @@ function TripCalendar({
     .filter(({ stop }) => stop.category !== 'day-trip')
 
   return (
-    <section className="calendar-panel" aria-label={copy.calendar}>
+    <Card className="calendar-panel" role="region" aria-label={copy.calendar}
+      variant="borderless" styles={{ body: { padding: 0 } }}>
       <div className="calendar-heading">
         <div>
           <h2>{copy.calendar}</h2>
           <p>{copy.calendarHint}</p>
         </div>
-        <button
-          type="button"
+        <Button
+          htmlType="button"
           className="calendar-export-button"
+          icon={<DownloadOutlined aria-hidden="true" />}
           onClick={() => exportCalendar(stops, legs, tripTitle, copy)}
           disabled={stops.length === 0}
         >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M5 20h14" />
-          </svg>
           {copy.exportIcs}
-        </button>
+        </Button>
       </div>
 
       <div className="calendar-legend" aria-label={copy.itinerary}>
         {calendarStops.map(({ stop, stopIndex }) => (
-          <span key={stop.id}>
-            <i
+          <Tag key={stop.id} icon={
+            <span
               className="calendar-legend-color"
               style={{ backgroundColor: stopColors.get(stopIndex) }}
+              aria-hidden="true"
             />
-            {stopLabels.get(stopIndex)} · {stop.place || 'Nueva estancia'} ·{' '}
+          }>
+            {stopLabels.get(stopIndex)} · {stop.place || copy.newStay} ·{' '}
             {stop.startDate}
-          </span>
+          </Tag>
         ))}
       </div>
 
       {months.length === 0 ? (
-        <p className="calendar-empty">{copy.emptyCalendar}</p>
+        <Empty className="calendar-empty" image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={copy.emptyCalendar} />
       ) : (
         <div className="calendar-months">
           {months.map((month) => (
-            <article
+            <Card
               className="calendar-month"
+              size="small"
+              title={<h3>{formatMonth(month, language)}</h3>}
+              styles={{ body: { padding: 0 } }}
               key={`${month.getUTCFullYear()}-${month.getUTCMonth()}`}
             >
-              <h3>{formatMonth(month, language)}</h3>
               <div className="calendar-grid">
                 {copy.weekdays.map((weekday) => (
                   <div className="calendar-weekday" key={weekday}>
@@ -348,7 +346,7 @@ function TripCalendar({
                     )
 
                   return (
-                    <div className="calendar-day" key={dateKey}>
+                    <div className="calendar-day" key={dateKey} data-date={dateKey}>
                       <span className="calendar-day-number">
                         {day.getUTCDate()}
                       </span>
@@ -360,8 +358,9 @@ function TripCalendar({
                           const showLabel = isStart || isWeekStart
 
                           return (
-                            <button
-                              type="button"
+                            <Button
+                              htmlType="button"
+                              type="primary"
                               className={[
                                 'calendar-event',
                                 isStart || isWeekStart ? 'is-start' : '',
@@ -376,29 +375,32 @@ function TripCalendar({
                                 backgroundColor: stopColors.get(stopIndex),
                               }}
                               onClick={() => onSelectStop(stopIndex)}
+                              aria-pressed={stopIndex === activeStopIndex}
                               title={`${stop.place} · ${
                                 stop.category === 'day-trip'
                                   ? copy.dayTrip
                                   : copy.stay
                               }`}
-                              aria-label={`${stop.place}, ${
+                              aria-label={`${stop.place || copy.newStay}, ${
                                 stop.category === 'day-trip'
                                   ? copy.dayTrip
                                   : copy.stay
                               }, ${dateKey}`}
                             >
                               {showLabel
-                                ? `${stopLabels.get(stopIndex)} ${stop.place || 'Nueva estancia'}`
+                                ? `${stopLabels.get(stopIndex)} ${stop.place || copy.newStay}`
                                 : '\u00a0'}
-                            </button>
+                            </Button>
                           )
                         })}
                       </div>
                       {nestedEvents.length > 0 && (
                         <div className="calendar-nested-events">
                           {nestedEvents.map(({ stop, stopIndex }) => (
-                            <button
-                              type="button"
+                            <Button
+                              htmlType="button"
+                              type="primary"
+                              icon={<EnterOutlined aria-hidden="true" />}
                               className={[
                                 'calendar-nested-event',
                                 stopIndex === activeStopIndex ? 'is-active' : '',
@@ -410,33 +412,35 @@ function TripCalendar({
                                 backgroundColor: stopColors.get(stopIndex),
                               }}
                               onClick={() => onSelectStop(stopIndex)}
+                              aria-pressed={stopIndex === activeStopIndex}
+                              aria-label={`${stop.place || copy.newDayTrip}, ${copy.dayTrip}, ${dateKey}, ${copy.roundTripFrom} ${baseStops.get(stopIndex)?.place ?? copy.stay}`}
                               title={`${stop.place} · ${copy.dayTrip} · ${baseStops.get(stopIndex)?.place ?? copy.stay}`}
                             >
-                              <b>↳</b>
-                              <span>
-                                {stopLabels.get(stopIndex)} {stop.place}
-                                {!stop.place && 'Nuevo day trip'}
+                              <span className="calendar-nested-content">
+                                <span>{stopLabels.get(stopIndex)} {stop.place || copy.newDayTrip}</span>
+                                <small>
+                                  {copy.roundTripFrom} {baseStops.get(stopIndex)?.place}
+                                </small>
                               </span>
-                              <small>
-                                en {baseStops.get(stopIndex)?.place}
-                              </small>
-                            </button>
+                            </Button>
                           ))}
                         </div>
                       )}
                       {movements.length > 0 && (
                         <div className="calendar-movements">
                           {movements.map(({ leg, routeIndex }) => (
-                            <button
-                              type="button"
+                            <Button
+                              htmlType="button"
+                              icon={<ArrowRightOutlined aria-hidden="true" />}
                               className={`calendar-movement${
                                 routeIndex === activeRoute ? ' is-active' : ''
                               }`}
                               key={leg.id}
                               onClick={() => onSelectRoute(routeIndex)}
-                              title={`${getTransportLabel(leg.transport) ? `${getTransportLabel(leg.transport)}: ` : ''}${leg.from.place} a ${leg.to.place}`}
+                              aria-pressed={routeIndex === activeRoute}
+                              aria-label={`${copy.transfer}: ${leg.from.place} ${copy.to} ${leg.to.place}, ${dateKey}`}
+                              title={`${getTransportLabel(leg.transport) ? `${getTransportLabel(leg.transport)}: ` : ''}${leg.from.place} ${copy.to} ${leg.to.place}`}
                             >
-                              <b>→</b>
                               <span>
                                 {leg.category !== 'day-trip' &&
                                   getTransportLabel(leg.transport) &&
@@ -445,7 +449,7 @@ function TripCalendar({
                                 {leg.category === 'day-trip' ? '↔' : '→'}{' '}
                                 {leg.to.place}
                               </span>
-                            </button>
+                            </Button>
                           ))}
                         </div>
                       )}
@@ -453,11 +457,11 @@ function TripCalendar({
                   )
                 })}
               </div>
-            </article>
+            </Card>
           ))}
         </div>
       )}
-    </section>
+    </Card>
   )
 }
 
