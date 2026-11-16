@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from 'react'
 import L from 'leaflet'
+import { maplibreGL } from '@maplibre/maplibre-gl-leaflet'
 import {
   MapContainer,
   Marker,
   Polyline,
-  TileLayer,
   Tooltip,
   useMap,
 } from 'react-leaflet'
@@ -14,8 +14,21 @@ import { UI_COPY } from '../i18n'
 
 const ROUTE_COLORS = ['#e85d3f', '#277c72', '#d99927', '#6253a3', '#27628a']
 const DEFAULT_CENTER = [23.6345, -102.5528]
+const OPEN_FREE_MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty'
 const CATEGORY_COLORS = {
   'day-trip': '#d99927',
+}
+
+function OpenFreeMapLayer() {
+  const map = useMap()
+
+  useEffect(() => {
+    const layer = maplibreGL({ style: OPEN_FREE_MAP_STYLE }).addTo(map)
+
+    return () => layer.remove()
+  }, [map])
+
+  return null
 }
 
 function MapController({ boundsPoints, routes, activeRoute }) {
@@ -193,10 +206,7 @@ function TripMap({
       zoomControl
       className="leaflet-map"
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <OpenFreeMapLayer />
 
       {legs.map((leg, index) => (
         <Polyline

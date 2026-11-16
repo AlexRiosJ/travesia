@@ -1,11 +1,21 @@
 import { expect, test } from '@playwright/test'
+import {
+  mockExternalRequests,
+  OPEN_FREE_MAP_STYLE_URL,
+} from './network'
 
 test.beforeEach(async ({ page, baseURL }) => {
-  await page.route('**/*', (route) =>
-    new URL(route.request().url()).origin === new URL(baseURL).origin
-      ? route.continue()
-      : route.abort(),
-  )
+  await mockExternalRequests(page, baseURL)
+})
+
+test('uses OpenFreeMap for the basemap', async ({ page }) => {
+  const styleRequest = page.waitForRequest(OPEN_FREE_MAP_STYLE_URL)
+
+  await page.goto('./')
+
+  await styleRequest
+  await expect(page.locator('.leaflet-gl-layer')).toHaveCount(1)
+  await expect(page.locator('.leaflet-tile-container')).toHaveCount(0)
 })
 
 test('shows labels only for the selected place or active route endpoints', async ({

@@ -1,11 +1,8 @@
 import { expect, test } from '@playwright/test'
+import { mockExternalRequests } from './network'
 
 test.beforeEach(async ({ page, baseURL }) => {
-  await page.route('**/*', (route) =>
-    new URL(route.request().url()).origin === new URL(baseURL).origin
-      ? route.continue()
-      : route.abort(),
-  )
+  await mockExternalRequests(page, baseURL)
 })
 
 for (const language of ['en', 'es']) {

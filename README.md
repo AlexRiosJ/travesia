@@ -46,14 +46,15 @@ event/export buttons; `@ant-design/icons` supplies application icons. The shared
 `ConfigProvider` follows the saved English/Spanish locale and light/dark/system
 theme without changing stored trip data.
 
-Leaflet remains the geographic renderer: its zoom/attribution controls, numbered
-markers, permanent selected/active labels, route paths, and moving direction
-arrow are map-domain rendering. Legend swatches mirror these geographic symbols.
-The calendar retains its Monday-first grid, multi-day lanes, nested day trips,
-and transfer placement, composed with Ant Design cards and buttons rather than
-replacing them with a calendar widget with different semantics. Its lane colors
-and continuation edges are domain styles; `.ics` export retains all-day dates,
-exclusive end dates, and round-trip transfer semantics.
+Leaflet remains the geographic renderer for zoom controls, numbered markers,
+permanent selected/active labels, route paths, and the moving direction arrow.
+The basemap uses OpenFreeMap vector tiles through MapLibre GL Leaflet. Legend
+swatches mirror these geographic symbols. The calendar retains its Monday-first
+grid, multi-day lanes, nested day trips, and transfer placement, composed with
+Ant Design cards and buttons rather than replacing them with a calendar widget
+with different semantics. Its lane colors and continuation edges are domain
+styles; `.ics` export retains all-day dates, exclusive end dates, and round-trip
+transfer semantics.
 
 ## GitHub Pages
 

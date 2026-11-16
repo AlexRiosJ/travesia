@@ -12,9 +12,11 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.4",
+    "@maplibre/maplibre-gl-leaflet": "^0.1.4",
     "antd": "^6.7.0",
     "leaflet": "^1.9.4",
     "leaflet-geometryutil": "^0.11.0",
+    "maplibre-gl": "^6.18.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-leaflet": "^5.0.0"
