@@ -139,3 +139,60 @@ test('preserves month-boundary continuations and localized blank event labels', 
   await expect(page.locator('.calendar-nested-event')).toContainText('New day trip')
   await expect(page.locator('.calendar-legend')).toContainText('New stay')
 })
+
+test('adds, displays, exports, and persists a daily stay plan', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('rumbo-language', 'en'))
+  await page.goto('./')
+
+  const firstStay = page.locator('.stop-node:not(.is-nested)').first()
+  await firstStay.locator(':scope > .ant-collapse-header').click()
+  const dailyPlans = firstStay.locator('.daily-plan-input')
+  await expect(dailyPlans).toHaveCount(3)
+  await expect(dailyPlans.nth(1)).toHaveAttribute(
+    'aria-label',
+    'Plan for Sun, Mar 14',
+  )
+
+  const plan = 'Museum, dinner;\nEvening walk'
+  await dailyPlans.nth(1).fill(plan)
+  const calendarPlan = page.locator(
+    '[data-date="2027-03-14"] .calendar-daily-plan',
+  )
+  await expect(calendarPlan).toContainText('Museum, dinner;')
+  await expect(calendarPlan).toContainText('Evening walk')
+  await calendarPlan.click()
+  await expect(page.locator('.selected-place-context')).toContainText(
+    'Guadalajara',
+  )
+
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const library = JSON.parse(
+          localStorage.getItem('rumbo-trip-library-v1'),
+        )
+        return library.trips[0].draftStops[0].dailyPlans['2027-03-14']
+      }),
+    )
+    .toBe(plan)
+
+  const downloadPromise = page.waitForEvent('download')
+  await page
+    .getByRole('button', { name: 'Export .ics', exact: true })
+    .click()
+  const download = await downloadPromise
+  const content = await readFile(await download.path(), 'utf8')
+  expect(content).toContain(
+    'Daily notes and activities:\\n2027-03-14: Museum\\, dinner\\;\\nEvening walk',
+  )
+
+  await page.reload()
+  const restoredStay = page.locator('.stop-node:not(.is-nested)').first()
+  await restoredStay.locator(':scope > .ant-collapse-header').click()
+  await expect(restoredStay.locator('.daily-plan-input').nth(1)).toHaveValue(
+    plan,
+  )
+  await expect(
+    page.locator('[data-date="2027-03-14"] .calendar-daily-plan'),
+  ).toContainText('Evening walk')
+})

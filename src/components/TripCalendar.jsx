@@ -2,6 +2,7 @@ import { Button, Card, Empty, Tag } from 'antd'
 import { ArrowRightOutlined, DownloadOutlined, EnterOutlined } from '@ant-design/icons'
 import { buildStopLabels } from '../utils/stopLabels'
 import { UI_COPY, getLocale } from '../i18n'
+import { getDailyPlanEntries } from '../utils/stayDays'
 
 const STOP_COLORS = [
   '#2f8177',
@@ -172,6 +173,10 @@ function exportCalendar(stops, legs, tripTitle, copy) {
     .replaceAll(':', '')
     .replace(/\.\d{3}Z$/, 'Z')
   const events = stops.flatMap((stop) => {
+    const dailyPlanDescription = getDailyPlanEntries(stop)
+      .map(({ date, plan }) => `${date}: ${plan}`)
+      .join('\n')
+
     return [
       'BEGIN:VEVENT',
       `UID:${stop.id}@travesia.local`,
@@ -182,7 +187,11 @@ function exportCalendar(stops, legs, tripTitle, copy) {
         `${stop.category === 'day-trip' ? `${copy.dayTrip}: ` : ''}${stop.place}`,
       )}`,
       `DESCRIPTION:${escapeCalendarText(
-        `${stop.category === 'day-trip' ? copy.dayTrip : copy.stay} · ${stop.startDate} - ${stop.endDate}`,
+        `${stop.category === 'day-trip' ? copy.dayTrip : copy.stay} · ${stop.startDate} - ${stop.endDate}${
+          dailyPlanDescription
+            ? `\n${copy.dailyPlans}:\n${dailyPlanDescription}`
+            : ''
+        }`,
       )}`,
       `CATEGORIES:${escapeCalendarText(
         stop.category === 'day-trip' ? copy.dayTrip : copy.stay,
@@ -335,6 +344,12 @@ function TripCalendar({
                   const nestedEvents = events.filter(
                     ({ stop }) => stop.category === 'day-trip',
                   )
+                  const dailyPlans = baseEvents.flatMap(
+                    ({ stop, stopIndex }) => {
+                      const plan = stop.dailyPlans?.[dateKey]?.trim()
+                      return plan ? [{ plan, stop, stopIndex }] : []
+                    },
+                  )
                   const movements = legs
                     .map((leg, routeIndex) => ({ leg, routeIndex }))
                     .filter(
@@ -422,6 +437,33 @@ function TripCalendar({
                                   {copy.roundTripFrom} {baseStops.get(stopIndex)?.place}
                                 </small>
                               </span>
+                            </Button>
+                          ))}
+                        </div>
+                      )}
+                      {dailyPlans.length > 0 && (
+                        <div
+                          className="calendar-daily-plans"
+                          aria-label={copy.dailyPlans}
+                        >
+                          {dailyPlans.map(({ plan, stop, stopIndex }) => (
+                            <Button
+                              htmlType="button"
+                              type="text"
+                              className="calendar-daily-plan"
+                              key={`${stop.id}-${dateKey}`}
+                              onClick={() => onSelectStop(stopIndex)}
+                              aria-label={`${copy.dailyPlanFor} ${dateKey}: ${plan}`}
+                              title={plan}
+                            >
+                              <span
+                                className="calendar-daily-plan-marker"
+                                style={{
+                                  backgroundColor: stopColors.get(stopIndex),
+                                }}
+                                aria-hidden="true"
+                              />
+                              <span>{plan}</span>
                             </Button>
                           ))}
                         </div>

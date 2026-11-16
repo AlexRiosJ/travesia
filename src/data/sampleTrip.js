@@ -32,6 +32,7 @@ export const SAMPLE_STOPS = [
     endDate: '2027-03-15',
     category: 'stay',
     transport: '',
+    dailyPlans: {},
   },
   {
     id: 'tequila-day-trip',
@@ -40,6 +41,7 @@ export const SAMPLE_STOPS = [
     endDate: '2027-03-14',
     category: 'day-trip',
     transport: '',
+    dailyPlans: {},
   },
   {
     id: 'mexico-city',
@@ -48,6 +50,7 @@ export const SAMPLE_STOPS = [
     endDate: '2027-03-18',
     category: 'stay',
     transport: '',
+    dailyPlans: {},
   },
   {
     id: 'monterrey',
@@ -56,6 +59,7 @@ export const SAMPLE_STOPS = [
     endDate: '2027-03-18',
     category: 'stay',
     transport: '',
+    dailyPlans: {},
   },
   {
     id: 'guadalajara-return',
@@ -64,6 +68,7 @@ export const SAMPLE_STOPS = [
     endDate: '2027-03-19',
     category: 'stay',
     transport: '',
+    dailyPlans: {},
   },
 ]
 
@@ -99,5 +104,6 @@ export function createEmptyStop(previousStop) {
     endDate: fallbackDate,
     category: 'stay',
     transport: '',
+    dailyPlans: {},
   }
 }

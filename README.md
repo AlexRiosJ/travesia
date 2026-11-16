@@ -3,7 +3,7 @@
 Visual travel planner with:
 
 - Interactive map and animated geodesic routes.
-- Itineraries with stays, transfers, and day trips.
+- Itineraries with stays, transfers, day trips, and daily notes or activities.
 - Interactive calendar and `.ics` export.
 - Multiple trips saved in the browser.
 - Light, dark, and system themes.
