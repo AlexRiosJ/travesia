@@ -49,6 +49,7 @@ import {
   formatDateRange,
 } from './i18n'
 import { buildRouteLegs } from './utils/routeLegs'
+import { getStayDateKeys } from './utils/stayDays'
 import { buildStopLabels } from './utils/stopLabels'
 import './App.css'
 
@@ -188,6 +189,7 @@ function StopCard({
   onRemove,
   onSelect,
   onAddDayTrip,
+  onUpdateDailyPlan,
   childCount = 0,
   childSummary = '',
   treeExpansion,
@@ -196,6 +198,9 @@ function StopCard({
   children,
 }) {
   const isExcursion = stop.category === 'day-trip'
+  const stayDates = isExcursion
+    ? []
+    : getStayDateKeys(stop.startDate, stop.endDate)
   const [isOpen, setIsOpen] = useState(
     treeExpansion ? treeExpansion.mode === 'all' : !stop.place,
   )
@@ -282,6 +287,44 @@ function StopCard({
                 <p className="day-trip-note">
                   {copy.roundTripFrom} {basePlace}
                 </p>
+              )}
+              {stayDates.length > 0 && (
+                <section
+                  className="daily-plans"
+                  aria-label={copy.dailyPlans}
+                >
+                  <div className="daily-plans-heading">
+                    <strong>{copy.dailyPlans}</strong>
+                    <small>{copy.dailyPlansHint}</small>
+                  </div>
+                  <div className="daily-plan-list">
+                    {stayDates.map((date) => {
+                      const formattedDate = formatDate(date, language, {
+                        weekday: 'short',
+                      })
+
+                      return (
+                        <label className="daily-plan-row" key={date}>
+                          <span>{formattedDate}</span>
+                          <Input.TextArea
+                            className="daily-plan-input"
+                            value={stop.dailyPlans?.[date] ?? ''}
+                            placeholder={copy.dailyPlanPlaceholder}
+                            aria-label={`${copy.dailyPlanFor} ${formattedDate}`}
+                            autoSize={{ minRows: 2, maxRows: 5 }}
+                            onChange={(event) =>
+                              onUpdateDailyPlan(
+                                stop.id,
+                                date,
+                                event.target.value,
+                              )
+                            }
+                          />
+                        </label>
+                      )
+                    })}
+                  </div>
+                </section>
               )}
               {children && <div className="stop-children">{children}</div>}
               <div className="stop-node-actions">
@@ -491,6 +534,15 @@ function App() {
         },
       ),
     [destination, draftStops, origin, resolvedDestination, resolvedOrigin],
+  )
+  const routeInputSignature = useMemo(
+    () =>
+      JSON.stringify(
+        draftStops.map(
+          ({ dailyPlans: _dailyPlans, ...routeStopFields }) => routeStopFields,
+        ),
+      ),
+    [draftStops],
   )
   const routes = routeLegs.length
   const selectedStopIndex = draftStops.findIndex(
@@ -767,6 +819,23 @@ function App() {
     )
   }
 
+  function updateDailyPlan(id, date, value) {
+    setDraftStops((current) =>
+      current.map((stop) => {
+        if (stop.id !== id) return stop
+
+        const dailyPlans = { ...(stop.dailyPlans ?? {}) }
+        if (value) {
+          dailyPlans[date] = value
+        } else {
+          delete dailyPlans[date]
+        }
+
+        return { ...stop, dailyPlans }
+      }),
+    )
+  }
+
   function removeStop(id) {
     setDraftStops((current) => current.filter((stop) => stop.id !== id))
   }
@@ -811,6 +880,7 @@ function App() {
         endDate: baseStop.startDate,
         category: 'day-trip',
         transport: '',
+        dailyPlans: {},
       }
 
       return [
@@ -982,7 +1052,7 @@ function App() {
     }, 700)
 
     return () => window.clearTimeout(timer)
-  }, [destination, draftStops, origin])
+  }, [destination, origin, routeInputSignature])
 
   function selectPlace(placeId, stepIndex) {
     setIsPlaying(false)
@@ -1506,6 +1576,7 @@ function App() {
                       totalStops={draftStops.length}
                       onSelect={() => selectPlace(group.base.stop.id)}
                       onAddDayTrip={addDayTrip}
+                      onUpdateDailyPlan={updateDailyPlan}
                       onUpdate={updateStop}
                       onRemove={removeStop}
                       childCount={group.children.length}
@@ -1528,6 +1599,7 @@ function App() {
                           nested
                           onSelect={() => selectPlace(stop.id)}
                           onAddDayTrip={addDayTrip}
+                          onUpdateDailyPlan={updateDailyPlan}
                           onUpdate={updateStop}
                           onRemove={removeStop}
                           treeExpansion={treeExpansion}

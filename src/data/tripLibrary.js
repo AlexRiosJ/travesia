@@ -22,6 +22,19 @@ function normalizeTransport(transport) {
   return LEGACY_TRANSPORT_LABELS[transport] || transport || ''
 }
 
+function normalizeDailyPlans(dailyPlans) {
+  if (!dailyPlans || typeof dailyPlans !== 'object' || Array.isArray(dailyPlans)) {
+    return {}
+  }
+
+  return Object.fromEntries(
+    Object.entries(dailyPlans).filter(
+      ([date, plan]) =>
+        /^\d{4}-\d{2}-\d{2}$/.test(date) && typeof plan === 'string',
+    ),
+  )
+}
+
 function createMexicoTrip() {
   const seattle = findKnownLocation('Seattle, WA')
 
@@ -69,6 +82,7 @@ function normalizeStops(stops = []) {
         ? 'day-trip'
         : 'stay',
     transport: normalizeTransport(stop.transport),
+    dailyPlans: normalizeDailyPlans(stop.dailyPlans),
   }))
 }
 
@@ -224,6 +238,7 @@ export function createBlankTrip() {
         endDate: date,
         category: 'stay',
         transport: '',
+        dailyPlans: {},
       },
     ],
     resolvedStops: [],

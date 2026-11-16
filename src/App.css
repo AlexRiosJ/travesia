@@ -873,6 +873,50 @@ input:disabled {
   font-weight: 700;
 }
 
+.daily-plans {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.daily-plans-heading {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 10px;
+}
+
+.daily-plans-heading strong {
+  font-size: 12px;
+}
+
+.daily-plans-heading small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.daily-plan-list {
+  display: grid;
+  gap: 9px;
+}
+
+.daily-plan-row {
+  min-width: 0;
+  display: grid !important;
+  grid-template-columns: minmax(88px, 0.22fr) minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+}
+
+.daily-plan-row > span {
+  margin: 8px 0 0 !important;
+}
+
+.daily-plan-input.ant-input {
+  resize: vertical;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .add-day-trip-button {
   min-height: 32px;
   display: inline-flex;
@@ -1548,6 +1592,50 @@ input:disabled {
   white-space: nowrap;
 }
 
+.calendar-daily-plans {
+  display: grid;
+  gap: 3px;
+  margin: 6px 4px 0;
+}
+
+.calendar-daily-plan.ant-btn {
+  min-width: 0;
+  height: auto;
+  display: grid;
+  grid-template-columns: 7px minmax(0, 1fr);
+  gap: 4px;
+  align-items: start;
+  padding: 3px 4px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 8px;
+  line-height: 1.25;
+  text-align: left;
+  white-space: normal;
+}
+
+.calendar-daily-plan.ant-btn:hover {
+  color: var(--ink);
+  border-color: var(--sage);
+}
+
+.calendar-daily-plan-marker {
+  width: 7px;
+  height: 7px;
+  margin-top: 2px;
+  border-radius: 50%;
+}
+
+.calendar-daily-plan.ant-btn > span:last-child {
+  min-width: 0;
+  display: -webkit-box;
+  overflow: hidden;
+  white-space: pre-wrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .calendar-movements {
   display: flex;
   flex-direction: column;
@@ -1804,6 +1892,14 @@ input:disabled {
     grid-template-columns: 1fr;
   }
 
+  .daily-plan-row {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-plan-row > span {
+    margin-top: 0 !important;
+  }
+
   .map-heading {
     align-items: flex-start;
   }
@@ -1876,6 +1972,7 @@ input:disabled {
 :root[data-theme='dark'] .endpoint-node,
 :root[data-theme='dark'] .stop-node,
 :root[data-theme='dark'] .calendar-day,
+:root[data-theme='dark'] .calendar-daily-plan.ant-btn,
 :root[data-theme='dark'] .map-step-button,
 :root[data-theme='dark'] .play-button,
 :root[data-theme='dark'] .transfer-connector .ant-input {
