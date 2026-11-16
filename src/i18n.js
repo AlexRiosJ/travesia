@@ -12,6 +12,31 @@ export const UI_COPY = {
     trips: 'Viajes',
     changeTrip: 'Cambiar de viaje',
     newTrip: 'Nuevo viaje',
+    wizardTitle: 'Crear un nuevo viaje',
+    wizardRouteStep: 'Ruta',
+    wizardStaysStep: 'Estancias',
+    wizardRouteIntro:
+      'Define desde dónde sales y dónde termina el viaje. Después podrás agregar las estancias.',
+    wizardStaysIntro:
+      'Agrega las ciudades o lugares donde te quedarás. Podrás ajustar todo en el itinerario después.',
+    wizardAddAnotherStay: 'Agregar otra estancia',
+    wizardEndpointsRequired: 'Completa el punto de partida y el punto final.',
+    wizardEndpointDatesRequired: 'Selecciona las fechas de salida y llegada.',
+    wizardDestinationBeforeOrigin:
+      'La fecha final no puede ser anterior a la fecha de salida.',
+    wizardStayRequired: 'Agrega al menos una estancia.',
+    wizardStayFieldsRequired:
+      'Completa la ciudad y las fechas de cada estancia.',
+    wizardStayDatesInvalid:
+      'La salida de una estancia no puede ser anterior a su llegada.',
+    wizardStayOutsideTrip:
+      'Las estancias deben ocurrir entre la salida y el final del viaje.',
+    wizardStayOrderInvalid:
+      'Ordena las estancias para que la siguiente no comience antes de terminar la anterior.',
+    cancel: 'Cancelar',
+    back: 'Atrás',
+    continue: 'Continuar',
+    finish: 'Finalizar',
     deleteTrip: 'Eliminar viaje actual',
     unnamedTrip: 'Viaje sin nombre',
     unconfigured: 'Sin configurar',
@@ -82,6 +107,31 @@ export const UI_COPY = {
     trips: 'Trips',
     changeTrip: 'Switch trip',
     newTrip: 'New trip',
+    wizardTitle: 'Create a new trip',
+    wizardRouteStep: 'Route',
+    wizardStaysStep: 'Stays',
+    wizardRouteIntro:
+      'Set where the trip starts and ends. You can add the stays next.',
+    wizardStaysIntro:
+      'Add the cities or places where you will stay. You can adjust everything in the itinerary afterward.',
+    wizardAddAnotherStay: 'Add another stay',
+    wizardEndpointsRequired: 'Complete the starting point and final point.',
+    wizardEndpointDatesRequired: 'Select the departure and arrival dates.',
+    wizardDestinationBeforeOrigin:
+      'The final date cannot be before the departure date.',
+    wizardStayRequired: 'Add at least one stay.',
+    wizardStayFieldsRequired:
+      'Complete the city and dates for every stay.',
+    wizardStayDatesInvalid:
+      'A stay cannot end before its arrival date.',
+    wizardStayOutsideTrip:
+      'Stays must occur between the trip departure and final date.',
+    wizardStayOrderInvalid:
+      'Order the stays so the next one does not start before the previous one ends.',
+    cancel: 'Cancel',
+    back: 'Back',
+    continue: 'Continue',
+    finish: 'Finish',
     deleteTrip: 'Delete current trip',
     unnamedTrip: 'Untitled trip',
     unconfigured: 'Not configured',

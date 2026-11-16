@@ -37,6 +37,7 @@ import {
 } from '@ant-design/icons'
 import TripCalendar from './components/TripCalendar'
 import TripMap from './components/TripMap'
+import TripWizard from './components/TripWizard'
 import { createEmptyStop, findKnownLocation } from './data/sampleTrip'
 import {
   TRIP_LIBRARY_STORAGE_KEY,
@@ -489,6 +490,7 @@ function App() {
     () => window.matchMedia('(prefers-color-scheme: dark)').matches,
   )
   const [tripMenuOpen, setTripMenuOpen] = useState(false)
+  const [tripWizardOpen, setTripWizardOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [status, setStatus] = useState(() =>
@@ -908,9 +910,35 @@ function App() {
     setStatus({ type: 'idle', message: '' })
   }
 
-  function addTrip() {
+  function openTripWizard() {
     closeTripMenu()
-    const trip = createBlankTrip()
+    setTripWizardOpen(true)
+  }
+
+  function closeTripWizard() {
+    setTripWizardOpen(false)
+    window.requestAnimationFrame(() =>
+      document.querySelector('.trip-menu-trigger')?.focus(),
+    )
+  }
+
+  function addTrip(wizardDraft) {
+    const blankTrip = createBlankTrip()
+    const trip = {
+      ...blankTrip,
+      title: wizardDraft.title,
+      draftStops: wizardDraft.stays,
+      origin: {
+        ...blankTrip.origin,
+        ...wizardDraft.origin,
+      },
+      destination: {
+        ...blankTrip.destination,
+        ...wizardDraft.destination,
+      },
+    }
+
+    setTripWizardOpen(false)
     setLibrary((current) => ({
       ...current,
       trips: [...current.trips, trip],
@@ -920,10 +948,7 @@ function App() {
     setSelectedPlaceId(null)
     setMapStepCursor(-1)
     setIsPlaying(false)
-    setStatus({
-      type: 'success',
-      message: 'Nuevo viaje creado. Agrega el nombre, las ciudades y las fechas.',
-    })
+    setStatus({ type: 'idle', message: '' })
   }
 
   function removeTrip() {
@@ -1198,7 +1223,7 @@ function App() {
                 if (key.startsWith('trip:')) {
                   switchTrip(key.slice('trip:'.length))
                 } else if (key === 'add-trip') {
-                  addTrip()
+                  openTripWizard()
                 } else if (key === 'delete-trip') {
                   removeTrip()
                 }
@@ -1271,6 +1296,15 @@ function App() {
           </Tag>
         </div>
       </header>
+
+      {tripWizardOpen && (
+        <TripWizard
+          open
+          copy={copy}
+          onCancel={closeTripWizard}
+          onFinish={addTrip}
+        />
+      )}
 
       <section
         className="summary-row"

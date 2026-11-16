@@ -62,6 +62,18 @@ for (const language of ['es', 'en']) {
         exact: true,
       }))
       await expect(tripTrigger).toHaveAttribute('aria-expanded', 'false')
+      const wizard = page.getByRole('dialog', {
+        name:
+          language === 'en'
+            ? 'Create a new trip'
+            : 'Crear un nuevo viaje',
+      })
+      await expect(wizard).toBeVisible()
+      await wizard.getByRole('button', {
+        name: language === 'en' ? 'Cancel' : 'Cancelar',
+        exact: true,
+      }).click()
+      await expect(wizard).toBeHidden()
       await expect(tripTrigger).toBeFocused()
 
       await interact(tripTrigger)
@@ -170,8 +182,27 @@ test('creates, renames, switches, and deletes trips', async ({ page }) => {
   await tripName.fill('Existing trip')
   await tripMenu.click()
   await page.getByRole('menuitem', { name: 'New trip', exact: true }).click()
-  await expect(tripName).toHaveValue('Nuevo viaje')
-  await tripName.fill('Delete me')
+  const wizard = page.getByRole('dialog', { name: 'Create a new trip' })
+  await wizard.getByRole('textbox', { name: 'Trip name' }).fill('Delete me')
+  await wizard
+    .getByRole('textbox', { name: 'Starting point: City or place' })
+    .fill('Seattle, WA')
+  await wizard
+    .getByLabel('Starting point: Date')
+    .fill('2027-04-01')
+  await wizard
+    .getByRole('textbox', { name: 'Final point: City or place' })
+    .fill('Paris')
+  await wizard.getByLabel('Final point: Date').fill('2027-04-10')
+  await wizard.getByRole('button', { name: 'Continue' }).click()
+  await wizard
+    .getByRole('textbox', { name: 'Stay 1: City or place' })
+    .fill('Tokyo')
+  await wizard.getByLabel('Stay 1: Arrival').fill('2027-04-01')
+  await wizard.getByLabel('Stay 1: Departure').fill('2027-04-10')
+  await wizard.getByRole('button', { name: 'Finish' }).click()
+  await expect(wizard).toBeHidden()
+  await expect(tripName).toHaveValue('Delete me')
 
   await tripMenu.click()
   await page.getByRole('menuitem', { name: 'Existing trip', exact: true }).click()
