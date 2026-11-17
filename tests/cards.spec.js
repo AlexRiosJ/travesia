@@ -185,18 +185,18 @@ test('creates, renames, switches, and deletes trips', async ({ page }) => {
   const wizard = page.getByRole('dialog', { name: 'Create a new trip' })
   await wizard.getByRole('textbox', { name: 'Trip name' }).fill('Delete me')
   await wizard
-    .getByRole('textbox', { name: 'Starting point: City or place' })
+    .getByRole('combobox', { name: 'Starting point: City or place' })
     .fill('Seattle, WA')
   await wizard
     .getByLabel('Starting point: Date')
     .fill('2027-04-01')
   await wizard
-    .getByRole('textbox', { name: 'Final point: City or place' })
+    .getByRole('combobox', { name: 'Final point: City or place' })
     .fill('Paris')
   await wizard.getByLabel('Final point: Date').fill('2027-04-10')
   await wizard.getByRole('button', { name: 'Continue' }).click()
   await wizard
-    .getByRole('textbox', { name: 'Stay 1: City or place' })
+    .getByRole('combobox', { name: 'Stay 1: City or place' })
     .fill('Tokyo')
   await wizard.getByLabel('Stay 1: Arrival').fill('2027-04-01')
   await wizard.getByLabel('Stay 1: Departure').fill('2027-04-10')

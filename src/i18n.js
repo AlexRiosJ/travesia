@@ -33,6 +33,11 @@ export const UI_COPY = {
       'Las estancias deben ocurrir entre la salida y el final del viaje.',
     wizardStayOrderInvalid:
       'Ordena las estancias para que la siguiente no comience antes de terminar la anterior.',
+    placeSearchLoading: 'Buscando lugares…',
+    placeSearchNoResults: 'No encontramos coincidencias.',
+    placeSearchError:
+      'No pudimos buscar lugares. Puedes continuar con el texto escrito.',
+    placeSearchAttribution: 'Datos de búsqueda:',
     cancel: 'Cancelar',
     back: 'Atrás',
     continue: 'Continuar',
@@ -128,6 +133,11 @@ export const UI_COPY = {
       'Stays must occur between the trip departure and final date.',
     wizardStayOrderInvalid:
       'Order the stays so the next one does not start before the previous one ends.',
+    placeSearchLoading: 'Searching places…',
+    placeSearchNoResults: 'No matching places found.',
+    placeSearchError:
+      'Place search is unavailable. You can continue with the text you entered.',
+    placeSearchAttribution: 'Search data:',
     cancel: 'Cancel',
     back: 'Back',
     continue: 'Continue',

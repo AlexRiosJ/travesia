@@ -180,6 +180,26 @@ async function geocodePlace(place, signal) {
   }
 }
 
+function updatePlaceValue(record, place) {
+  const {
+    lat: _lat,
+    lng: _lng,
+    displayName: _displayName,
+    ...remainingFields
+  } = record
+  return { ...remainingFields, place }
+}
+
+function getSavedLocation(place) {
+  if (!Number.isFinite(place.lat) || !Number.isFinite(place.lng)) return null
+
+  return {
+    lat: place.lat,
+    lng: place.lng,
+    displayName: place.displayName || place.place,
+  }
+}
+
 function StopCard({
   stop,
   displayLabel,
@@ -813,6 +833,7 @@ function App() {
     setDraftStops((current) =>
       current.map((stop) => {
         if (stop.id !== id) return stop
+        if (field === 'place') return updatePlaceValue(stop, value)
         if (field === 'startDate' && stop.category === 'day-trip') {
           return { ...stop, startDate: value, endDate: value }
         }
@@ -845,10 +866,13 @@ function App() {
   function updateEndpoint(endpointName, field, value) {
     updateActiveTrip((trip) => ({
       ...trip,
-      [endpointName]: {
-        ...trip[endpointName],
-        [field]: value,
-      },
+      [endpointName]:
+        field === 'place'
+          ? updatePlaceValue(trip[endpointName], value)
+          : {
+              ...trip[endpointName],
+              [field]: value,
+            },
     }))
   }
 
@@ -990,18 +1014,24 @@ function App() {
 
     try {
       async function resolveLocation(place, shouldWait = false) {
-        const key = place.trim().toLocaleLowerCase('es')
+        const key = place.place.trim().toLocaleLowerCase('es')
+        const savedLocation = getSavedLocation(place)
+        if (savedLocation) {
+          geocodeCache.current.set(key, savedLocation)
+          return savedLocation
+        }
+
         let location = geocodeCache.current.get(key)
 
         if (!location) {
-          const knownLocation = findKnownLocation(place)
+          const knownLocation = findKnownLocation(place.place)
           location = knownLocation
             ? {
                 lat: knownLocation.lat,
                 lng: knownLocation.lng,
                 displayName: knownLocation.displayName,
               }
-            : await geocodePlace(place.trim(), controller.signal)
+            : await geocodePlace(place.place.trim(), controller.signal)
           geocodeCache.current.set(key, location)
 
           if (!knownLocation && shouldWait) {
@@ -1012,12 +1042,12 @@ function App() {
         return location
       }
 
-      const originLocation = await resolveLocation(origin.place, true)
+      const originLocation = await resolveLocation(origin, true)
       const nextStops = []
 
       for (const [index, stop] of draftStops.entries()) {
         const location = await resolveLocation(
-          stop.place,
+          stop,
           index < draftStops.length - 1,
         )
 
@@ -1028,7 +1058,7 @@ function App() {
         })
       }
 
-      const destinationLocation = await resolveLocation(destination.place)
+      const destinationLocation = await resolveLocation(destination)
       updateActiveTrip((trip) => ({
         ...trip,
         resolvedStops: nextStops,
@@ -1301,6 +1331,7 @@ function App() {
         <TripWizard
           open
           copy={copy}
+          language={language}
           onCancel={closeTripWizard}
           onFinish={addTrip}
         />
