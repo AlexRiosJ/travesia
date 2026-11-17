@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import { Alert, Button, Input, Modal, Steps } from 'antd'
+import PlaceAutocomplete from './PlaceAutocomplete'
 
 function getToday() {
   return new Date().toISOString().slice(0, 10)
@@ -27,6 +28,44 @@ function createInitialDraft(copy) {
     destination: { place: '', date },
     stays: [createStay(date)],
   }
+}
+
+function updatePlace(record, value, selection = null) {
+  const {
+    lat: _lat,
+    lng: _lng,
+    displayName: _displayName,
+    ...remainingFields
+  } = record
+
+  if (!selection) return { ...remainingFields, place: value }
+
+  return {
+    ...remainingFields,
+    place: selection.displayName,
+    lat: selection.lat,
+    lng: selection.lng,
+    displayName: selection.displayName,
+  }
+}
+
+function normalizePlace(record) {
+  const place = record.place.trim()
+  if (Number.isFinite(record.lat) && Number.isFinite(record.lng)) {
+    return {
+      ...record,
+      place,
+      displayName: record.displayName || place,
+    }
+  }
+
+  const {
+    lat: _lat,
+    lng: _lng,
+    displayName: _displayName,
+    ...remainingFields
+  } = record
+  return { ...remainingFields, place }
 }
 
 function validateRoute(draft, copy) {
@@ -73,7 +112,7 @@ function validateStays(draft, copy) {
   return null
 }
 
-function TripWizard({ open, copy, onCancel, onFinish }) {
+function TripWizard({ open, copy, language, onCancel, onFinish }) {
   const [step, setStep] = useState(0)
   const [draft, setDraft] = useState(() => createInitialDraft(copy))
   const [error, setError] = useState('')
@@ -88,6 +127,13 @@ function TripWizard({ open, copy, onCancel, onFinish }) {
     }))
   }
 
+  function updateEndpointPlace(endpoint, value, selection) {
+    setDraft((current) => ({
+      ...current,
+      [endpoint]: updatePlace(current[endpoint], value, selection),
+    }))
+  }
+
   function updateStay(id, field, value) {
     setDraft((current) => ({
       ...current,
@@ -98,6 +144,15 @@ function TripWizard({ open, copy, onCancel, onFinish }) {
         }
         return { ...stay, [field]: value }
       }),
+    }))
+  }
+
+  function updateStayPlace(id, value, selection) {
+    setDraft((current) => ({
+      ...current,
+      stays: current.stays.map((stay) =>
+        stay.id === id ? updatePlace(stay, value, selection) : stay,
+      ),
     }))
   }
 
@@ -151,18 +206,9 @@ function TripWizard({ open, copy, onCancel, onFinish }) {
 
     onFinish({
       title: draft.title.trim() || copy.newTrip,
-      origin: {
-        place: draft.origin.place.trim(),
-        date: draft.origin.date,
-      },
-      destination: {
-        place: draft.destination.place.trim(),
-        date: draft.destination.date,
-      },
-      stays: draft.stays.map((stay) => ({
-        ...stay,
-        place: stay.place.trim(),
-      })),
+      origin: normalizePlace(draft.origin),
+      destination: normalizePlace(draft.destination),
+      stays: draft.stays.map(normalizePlace),
     })
   }
 
@@ -227,13 +273,22 @@ function TripWizard({ open, copy, onCancel, onFinish }) {
                   <div className="trip-wizard-endpoint-fields">
                     <label className="trip-wizard-field">
                       <span>{copy.cityOrPlace}</span>
-                      <Input
+                      <PlaceAutocomplete
                         value={draft[endpoint].place}
                         placeholder={copy.cityPlaceholder}
-                        aria-label={`${label}: ${copy.cityOrPlace}`}
+                        ariaLabel={`${label}: ${copy.cityOrPlace}`}
                         autoFocus={endpoint === 'origin'}
-                        onChange={(event) =>
-                          updateEndpoint(endpoint, 'place', event.target.value)
+                        language={language}
+                        copy={copy}
+                        onChange={(value) =>
+                          updateEndpointPlace(endpoint, value)
+                        }
+                        onSelect={(selection) =>
+                          updateEndpointPlace(
+                            endpoint,
+                            selection.displayName,
+                            selection,
+                          )
                         }
                       />
                     </label>
@@ -268,13 +323,22 @@ function TripWizard({ open, copy, onCancel, onFinish }) {
                     <div className="trip-wizard-stay-fields">
                       <label className="trip-wizard-field">
                         <span>{copy.cityOrPlace}</span>
-                        <Input
+                        <PlaceAutocomplete
                           value={stay.place}
                           placeholder={copy.cityOrPlace}
-                          aria-label={`${stayLabel}: ${copy.cityOrPlace}`}
+                          ariaLabel={`${stayLabel}: ${copy.cityOrPlace}`}
                           autoFocus={index === 0}
-                          onChange={(event) =>
-                            updateStay(stay.id, 'place', event.target.value)
+                          language={language}
+                          copy={copy}
+                          onChange={(value) =>
+                            updateStayPlace(stay.id, value)
+                          }
+                          onSelect={(selection) =>
+                            updateStayPlace(
+                              stay.id,
+                              selection.displayName,
+                              selection,
+                            )
                           }
                         />
                       </label>

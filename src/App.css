@@ -312,6 +312,52 @@
   text-transform: uppercase;
 }
 
+.place-autocomplete {
+  width: 100%;
+}
+
+.place-autocomplete-loading {
+  width: 14px;
+  min-width: 14px;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.place-autocomplete-option {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  padding: 2px 0;
+}
+
+.place-autocomplete-option strong,
+.place-autocomplete-option small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place-autocomplete-option strong {
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.place-autocomplete-option small,
+.place-autocomplete-status,
+.place-autocomplete-attribution {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.place-autocomplete-attribution {
+  padding: 7px 11px 5px;
+  border-top: 1px solid var(--border);
+}
+
+.place-autocomplete-attribution a {
+  color: var(--sage);
+}
+
 .trip-wizard-route-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
